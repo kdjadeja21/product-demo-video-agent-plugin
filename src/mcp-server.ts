@@ -9,6 +9,7 @@ import { runDoctor } from "./pipeline/doctor.js";
 import { inspectDemoOutput } from "./pipeline/verify.js";
 import { ensureDemoGitignore } from "./services/ensure-demo-gitignore.js";
 import { initDemoConfig } from "./services/init-config.js";
+import { resolveChaptersForSnippet } from "./services/load-chapters.js";
 import { generatePlayerSnippet } from "./services/player-snippet.js";
 import { saveBrowserSessionInstructions } from "./services/session-instructions.js";
 import {
@@ -213,19 +214,56 @@ server.tool(
 
 server.tool(
   "generate_player_snippet",
-  "Produce HTML or React snippets for native video + WebVTT captions.",
+  "Produce HTML or React Watch Demo snippets with native video, WebVTT captions, and a clickable chapter timestamp list.",
   {
     format: z.enum(["html", "react"]).optional(),
     videoSrc: z.string().optional(),
     captionsSrc: z.string().optional(),
     playPauseFlash: z.boolean().optional(),
+    watchDemoButton: z
+      .boolean()
+      .optional()
+      .describe("Include Watch Demo button + dialog (default true)"),
+    projectRoot: z
+      .string()
+      .optional()
+      .describe("Consumer project root — used to load built chapters JSON"),
+    configPath: z.string().optional(),
+    chapters: z
+      .array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          startSec: z.number(),
+        }),
+      )
+      .optional()
+      .describe("Chapter list; if omitted, loaded from the project chapters file when projectRoot is set"),
   },
-  async ({ format, videoSrc, captionsSrc, playPauseFlash }) => {
+  async ({
+    format,
+    videoSrc,
+    captionsSrc,
+    playPauseFlash,
+    watchDemoButton,
+    projectRoot,
+    configPath,
+    chapters,
+  }) => {
+    const resolvedChapters = await resolveChaptersForSnippet({
+      chapters,
+      projectRoot: projectRoot ? resolve(projectRoot) : undefined,
+      configPath: projectRoot
+        ? resolve(projectRoot, configPath ?? "demo.config.json")
+        : undefined,
+    });
     const snippet = generatePlayerSnippet({
       format: format ?? "html",
       videoSrc: videoSrc ?? "/demo/product-demo.mp4",
       captionsSrc: captionsSrc ?? "/demo/product-demo.vtt",
       playPauseFlash,
+      watchDemoButton,
+      chapters: resolvedChapters,
     });
     return textResult(snippet);
   },

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { defaultChaptersRelativePath } from "./pipeline/captions.js";
 import { resolveSafePath } from "./paths.js";
 
 const hexColor = z
@@ -66,6 +67,8 @@ export const demoConfigSchema = z.object({
   output: z.object({
     video: z.string().min(1),
     captions: z.string().min(1),
+    /** Seekable chapter list JSON for the Watch Demo player. Defaults beside captions. */
+    chapters: z.string().min(1).optional(),
     draftDir: z.string().min(1),
   }),
   video: z
@@ -108,6 +111,7 @@ export interface ResolvedDemoConfig extends DemoConfig {
   resolved: {
     video: string;
     captions: string;
+    chapters: string;
     draftDir: string;
     storageState?: string;
     logoPath?: string;
@@ -121,9 +125,13 @@ export function parseDemoConfig(
 ): ResolvedDemoConfig {
   const config = demoConfigSchema.parse(raw);
   const allow = { allowEscape: options.allowEscape };
+  const chaptersRelative =
+    config.output.chapters ??
+    defaultChaptersRelativePath(config.output.captions);
   const resolved = {
     video: resolveSafePath(projectRoot, config.output.video, allow),
     captions: resolveSafePath(projectRoot, config.output.captions, allow),
+    chapters: resolveSafePath(projectRoot, chaptersRelative, allow),
     draftDir: resolveSafePath(projectRoot, config.output.draftDir, allow),
     storageState: config.auth?.storageState
       ? resolveSafePath(projectRoot, config.auth.storageState, allow)

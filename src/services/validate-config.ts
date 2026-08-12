@@ -42,6 +42,7 @@ export async function validateDemoConfig(options: {
   for (const [label, path] of [
     ["video output dir parent", config.resolved.video],
     ["captions output", config.resolved.captions],
+    ["chapters output", config.resolved.chapters],
     ["draft dir", config.resolved.draftDir],
   ] as const) {
     void label;

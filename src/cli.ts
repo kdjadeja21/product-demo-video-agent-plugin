@@ -5,6 +5,7 @@ import { formatDoctorReport, runDoctor } from "./pipeline/doctor.js";
 import { inspectDemoOutput } from "./pipeline/verify.js";
 import { ensureDemoGitignore } from "./services/ensure-demo-gitignore.js";
 import { initDemoConfig } from "./services/init-config.js";
+import { resolveChaptersForSnippet } from "./services/load-chapters.js";
 import { generatePlayerSnippet } from "./services/player-snippet.js";
 import { saveBrowserSessionInstructions } from "./services/session-instructions.js";
 import {
@@ -24,7 +25,7 @@ Commands:
   probe [--project <dir>] [--config <relpath>]
   build [--project <dir>] [--config <relpath>]
   inspect [--project <dir>] [--config <relpath>]
-  snippet [--format html|react] [--video <src>] [--captions <src>]
+  snippet [--format html|react] [--video <src>] [--captions <src>] [--chapters <json>] [--project <dir>] [--no-flash] [--no-watch-button]
 `);
   process.exit(1);
 }
@@ -136,12 +137,20 @@ async function main(): Promise<void> {
     case "snippet": {
       const format =
         (getFlag(args, "--format") as "html" | "react" | undefined) ?? "html";
+      const chaptersFlag = getFlag(args, "--chapters");
+      const chapters = await resolveChaptersForSnippet({
+        chaptersPath: chaptersFlag ? resolve(chaptersFlag) : undefined,
+        projectRoot: hasFlag(args, "--project") ? projectRoot : undefined,
+        configPath: hasFlag(args, "--project") ? configPath : undefined,
+      });
       const snippet = generatePlayerSnippet({
         format,
         videoSrc: getFlag(args, "--video") ?? "/demo/product-demo.mp4",
         captionsSrc:
           getFlag(args, "--captions") ?? "/demo/product-demo.vtt",
         playPauseFlash: !hasFlag(args, "--no-flash"),
+        watchDemoButton: !hasFlag(args, "--no-watch-button"),
+        chapters,
       });
       console.log(snippet);
       break;

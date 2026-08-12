@@ -2,7 +2,13 @@ import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { ResolvedDemoConfig } from "../config-schema.js";
 import { captureForBuild, probeDemo, type CaptureArtifact } from "./browser-capture.js";
-import { buildWebVtt, type SectionTiming } from "./captions.js";
+import {
+  buildChapters,
+  buildWebVtt,
+  serializeChaptersJson,
+  type DemoChapter,
+  type SectionTiming,
+} from "./captions.js";
 import {
   concatVideoSegments,
   encodeStillSegment,
@@ -20,8 +26,10 @@ import { inspectDemoOutput, type InspectReport } from "./verify.js";
 export interface BuildResult {
   videoPath: string;
   captionsPath: string;
+  chaptersPath: string;
   draftDir: string;
   sectionTimings: SectionTiming[];
+  chapters: DemoChapter[];
   inspect: InspectReport;
 }
 
@@ -47,6 +55,7 @@ export async function runBuild(config: ResolvedDemoConfig): Promise<BuildResult>
   await mkdir(draftDir, { recursive: true });
   await mkdir(dirname(config.resolved.video), { recursive: true });
   await mkdir(dirname(config.resolved.captions), { recursive: true });
+  await mkdir(dirname(config.resolved.chapters), { recursive: true });
 
   const narrations = await synthesizeAllSections({
     sections: config.sections.map((s) => ({ id: s.id, text: s.text })),
@@ -110,8 +119,14 @@ export async function runBuild(config: ResolvedDemoConfig): Promise<BuildResult>
   const captionsDraft = join(draftDir, "product-demo.vtt");
   await writeFile(captionsDraft, vtt, "utf8");
 
+  const chapters = buildChapters(sectionTimings);
+  const chaptersJson = serializeChaptersJson(chapters);
+  const chaptersDraft = join(draftDir, "product-demo.chapters.json");
+  await writeFile(chaptersDraft, chaptersJson, "utf8");
+
   await copyFile(muxedDraft, config.resolved.video);
   await copyFile(captionsDraft, config.resolved.captions);
+  await copyFile(chaptersDraft, config.resolved.chapters);
 
   const inspect = await inspectDemoOutput({
     videoPath: config.resolved.video,
@@ -123,15 +138,21 @@ export async function runBuild(config: ResolvedDemoConfig): Promise<BuildResult>
 
   await writeFile(
     join(draftDir, "build-report.json"),
-    JSON.stringify({ sectionTimings, inspect, narrations: summarizeNarration(narrations) }, null, 2),
+    JSON.stringify(
+      { sectionTimings, chapters, inspect, narrations: summarizeNarration(narrations) },
+      null,
+      2,
+    ),
     "utf8",
   );
 
   return {
     videoPath: config.resolved.video,
     captionsPath: config.resolved.captions,
+    chaptersPath: config.resolved.chapters,
     draftDir,
     sectionTimings,
+    chapters,
     inspect,
   };
 }

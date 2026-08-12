@@ -21,6 +21,21 @@ describe("parseDemoConfig", () => {
     expect(cfg.video.height).toBe(1080);
     expect(cfg.tts.provider).toBe("edge-tts");
     expect(cfg.resolved.video).toContain("a.mp4");
+    expect(cfg.resolved.chapters).toContain("a.chapters.json");
+  });
+
+  it("honors explicit output.chapters", () => {
+    const cfg = parseDemoConfig(
+      {
+        ...valid,
+        output: {
+          ...valid.output,
+          chapters: "public/demo/custom-chapters.json",
+        },
+      },
+      "/tmp/project",
+    );
+    expect(cfg.resolved.chapters).toContain("custom-chapters.json");
   });
 
   it("accepts optional settleMs on sections", () => {

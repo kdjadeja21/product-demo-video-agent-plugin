@@ -11,6 +11,52 @@ export interface SectionTiming {
   durationSec: number;
 }
 
+/** Seekable chapter entry for the Watch Demo player. */
+export interface DemoChapter {
+  id: string;
+  label: string;
+  startSec: number;
+}
+
+/** Title-case a section id for chapter list labels (`key-action` → `Key Action`). */
+export function humanizeSectionId(id: string): string {
+  return id
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .replace(/\b[a-zA-Z]/g, (ch) => ch.toUpperCase());
+}
+
+/** Compact display timestamp for chapter buttons (`0:05`, `1:02:03`). */
+export function formatChapterTimestamp(seconds: number): string {
+  const clamped = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(clamped / 3600);
+  const minutes = Math.floor((clamped % 3600) / 60);
+  const secs = clamped % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  if (hours > 0) return `${hours}:${pad(minutes)}:${pad(secs)}`;
+  return `${minutes}:${pad(secs)}`;
+}
+
+export function buildChapters(sections: SectionTiming[]): DemoChapter[] {
+  return sections.map((section) => ({
+    id: section.id,
+    label: humanizeSectionId(section.id),
+    startSec: section.startSec,
+  }));
+}
+
+export function serializeChaptersJson(chapters: DemoChapter[]): string {
+  return `${JSON.stringify({ chapters }, null, 2)}\n`;
+}
+
+/** Derive chapters JSON path from captions path when `output.chapters` is omitted. */
+export function defaultChaptersRelativePath(captionsRelativePath: string): string {
+  if (captionsRelativePath.toLowerCase().endsWith(".vtt")) {
+    return `${captionsRelativePath.slice(0, -4)}.chapters.json`;
+  }
+  return `${captionsRelativePath}.chapters.json`;
+}
+
 /** Split narration into sentences; keep punctuation on the sentence. */
 export function splitSentences(text: string): string[] {
   const cleaned = text.replace(/\s+/g, " ").trim();

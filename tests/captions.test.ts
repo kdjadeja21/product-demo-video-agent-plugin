@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   allocateSentenceTimings,
+  buildChapters,
   buildWebVtt,
+  defaultChaptersRelativePath,
+  formatChapterTimestamp,
   formatVttTimestamp,
+  humanizeSectionId,
   parseVttDuration,
   splitSentences,
 } from "../src/pipeline/captions.js";
@@ -38,5 +42,22 @@ describe("captions", () => {
 
   it("formats timestamps", () => {
     expect(formatVttTimestamp(3661.5)).toBe("01:01:01.500");
+  });
+
+  it("builds clickable chapter metadata from section timings", () => {
+    expect(humanizeSectionId("key-action")).toBe("Key Action");
+    expect(formatChapterTimestamp(65)).toBe("1:05");
+    expect(formatChapterTimestamp(3661)).toBe("1:01:01");
+    expect(defaultChaptersRelativePath("public/demo/a.vtt")).toBe(
+      "public/demo/a.chapters.json",
+    );
+    const chapters = buildChapters([
+      { id: "welcome", text: "Hi.", startSec: 0, durationSec: 2 },
+      { id: "home", text: "Home.", startSec: 2, durationSec: 3 },
+    ]);
+    expect(chapters).toEqual([
+      { id: "welcome", label: "Welcome", startSec: 0 },
+      { id: "home", label: "Home", startSec: 2 },
+    ]);
   });
 });

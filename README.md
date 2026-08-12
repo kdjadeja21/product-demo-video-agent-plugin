@@ -12,13 +12,15 @@ Works with **any** web UI you can open in Playwright. No product-specific routes
 
 ## Consumer commit contract
 
-After a successful build, commit **only**:
+After a successful build, commit:
 
 - `demo.config.json`
 - Final MP4 (`output.video`)
 - Final WebVTT (`output.captions`)
+- Chapters JSON (`output.chapters`, or the default `*.chapters.json` beside captions)
+- Minimal **Watch Demo** landing-page integration (button/modal/player)
 
-Do **not** vendor this plugin into the consumer git tree. Do **not** modify consumer UI/CSS/Next config for demos. Capture settles animated UIs via Playwright `reducedMotion` and optional section `settleMs`. Prefer `http://localhost:…` for `baseUrl`.
+Do **not** vendor this plugin into the consumer git tree. Do **not** modify consumer UI/CSS/Next config for capture. After build, **do** add the default Watch Demo CTA on `/`. Capture settles animated UIs via Playwright `reducedMotion` and optional section `settleMs`. Prefer `http://localhost:…` for `baseUrl`.
 
 `init` / `ensure_demo_gitignore` appends managed ignore rules for draft dirs, `.cursor-plugins/product-demo/`, and `storageState.json`.
 
@@ -91,11 +93,13 @@ npx product-demo build --project /path/to/your-app
 npx product-demo inspect --project /path/to/your-app
 ```
 
-6. Optional player snippet:
+6. Generate the Watch Demo player (chapters load from the project when `--project` is set) and add it to the landing page:
 
 ```bash
-npx product-demo snippet --format react
+npx product-demo snippet --format react --project /path/to/your-app
 ```
+
+The snippet includes a **Watch Demo** button/dialog and a **clickable chapter timestamp** list derived from demo sections.
 
 ## MCP tools
 
@@ -109,7 +113,7 @@ npx product-demo snippet --format react
 | `probe_demo` | Capture-only review frames |
 | `build_demo_video` | Full pipeline |
 | `inspect_demo_output` | ffprobe + sample frames |
-| `generate_player_snippet` | HTML/React + WebVTT |
+| `generate_player_snippet` | HTML/React Watch Demo + WebVTT + clickable chapters |
 
 `mcp.json` launches `./bin/product-demo-mcp` with `${PLUGIN_DATA}` for cache/state.
 
@@ -121,6 +125,7 @@ npx product-demo snippet --format react
   "output": {
     "video": "public/demo/product-demo.mp4",
     "captions": "public/demo/product-demo.vtt",
+    "chapters": "public/demo/product-demo.chapters.json",
     "draftDir": "public/demo/draft"
   },
   "sections": [
@@ -143,6 +148,8 @@ See `skills/product-demo/references/config-reference.md` and examples under `ski
 - Focus = rounded border + light dim (no zoom/crop); prefer existing selectors
 - Encode = scale + pad to 1920×1080; interactive clips use temporal `tpad`
 - Captions = external WebVTT (not burned-in)
+- Chapters = seekable section list in the Watch Demo player
+- Default landing CTA = Watch Demo button after build
 - Playwright `reducedMotion: "reduce"` during capture
 
 ## Development
