@@ -10,6 +10,6 @@
 - [ ] WebVTT exists beside the video; cues read well and track audio length.
 - [ ] Inspect sample frames (first / mid / last) look sharp enough for UI text.
 - [ ] Commits include `demo.config.json` + final MP4 + final VTT + chapters JSON + Watch Demo landing CTA.
-- [ ] Watch Demo on `/` opens the player with a clickable chapter timestamp list.
+- [ ] Watch Demo on `/` opens the player with in-player chapter segments and a current/total playback clock.
 - [ ] Draft/plugin paths covered by managed gitignore; plugin not vendored into the app.
 - [ ] No secrets or demo auth bypasses introduced.
