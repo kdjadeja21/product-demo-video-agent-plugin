@@ -17,8 +17,8 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
    - Read `references/config-reference.md` for the schema.
 
 2. **Prerequisites**
+   - Call `doctor_product_demo` first (or run `product-demo doctor`) to confirm Node, `ffmpeg`, `ffprobe`, `edge-tts`, the build output, and Playwright Chromium are all ready. Fix anything reported missing before continuing.
    - App reachable at `baseUrl`.
-   - System tools: `ffmpeg`, `ffprobe`, `edge-tts`, Playwright browsers.
    - If pages need login: create Playwright `storageState.json` using normal app login — see `save_browser_session_instructions`. **Do not** add auth bypasses.
 
 3. **Validate**
