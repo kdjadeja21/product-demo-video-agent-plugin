@@ -4,7 +4,7 @@
 
 Paste this prompt in the Cursor Cloud Agent in the project where you want to create a demo video:
 
-> Install the product-demo plugin from https://github.com/kdjadeja21/product-demo-video-agent-plugin, start the app, create a demo.config.json for this project, probe, then build one demo video.
+> Install the product-demo plugin from https://github.com/kdjadeja21/product-demo-video-agent-plugin, start the app, create a demo.config.json for this project covering the features you want in the video, probe, then build one demo video.
 
 Generic **Agent Plugin** that turns a project’s `demo.config.json` into a narrated 1080p product demo: browser capture, TTS audio, WebVTT captions, focus highlights, and verification.
 
