@@ -1,5 +1,9 @@
 # Troubleshooting
 
+## Run the doctor check first
+
+Before debugging anything else, call `doctor_product_demo` (or run `product-demo doctor`). It reports Node version, build output, `ffmpeg`, `ffprobe`, `edge-tts`, and Playwright Chromium in one pass with the exact fix command for anything missing.
+
 ## baseUrl not reachable
 
 Start the app locally and confirm the URL in `demo.config.json`. Validation warns when fetch fails.

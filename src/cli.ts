@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { runBuild, runProbe } from "./pipeline/build.js";
+import { formatDoctorReport, runDoctor } from "./pipeline/doctor.js";
 import { inspectDemoOutput } from "./pipeline/verify.js";
 import { initDemoConfig } from "./services/init-config.js";
 import { generatePlayerSnippet } from "./services/player-snippet.js";
@@ -14,6 +15,7 @@ function usage(): never {
   console.log(`product-demo <command> [options]
 
 Commands:
+  doctor [--json]
   init [--project <dir>] [--config <relpath>] [--force]
   validate [--project <dir>] [--config <relpath>]
   session-instructions [--project <dir>] [--config <relpath>]
@@ -45,6 +47,16 @@ async function main(): Promise<void> {
   const configPath = resolve(projectRoot, configRel);
 
   switch (command) {
+    case "doctor": {
+      const report = await runDoctor();
+      if (hasFlag(args, "--json")) {
+        console.log(JSON.stringify(report, null, 2));
+      } else {
+        console.log(formatDoctorReport(report));
+      }
+      if (!report.ok) process.exit(2);
+      break;
+    }
     case "init": {
       const result = await initDemoConfig({
         projectRoot,

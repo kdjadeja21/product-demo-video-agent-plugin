@@ -13,8 +13,8 @@ export async function checkDependencies(): Promise<DependencyReport> {
   const ffprobe = await commandExists("ffprobe");
   const edgeTts = await commandExists("edge-tts");
   const missing: string[] = [];
-  if (!ffmpeg) missing.push("ffmpeg");
-  if (!ffprobe) missing.push("ffprobe");
+  if (!ffmpeg) missing.push("ffmpeg (install ffmpeg and ensure it is on PATH)");
+  if (!ffprobe) missing.push("ffprobe (install ffmpeg, which bundles ffprobe)");
   if (!edgeTts) missing.push("edge-tts (pip install edge-tts)");
   return {
     ffmpeg,

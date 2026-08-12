@@ -1,4 +1,4 @@
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveSafePath } from "../paths.js";
@@ -12,7 +12,6 @@ export async function initDemoConfig(options: {
 }): Promise<{ configPath: string; created: boolean }> {
   const relativePath = options.relativePath ?? "demo.config.json";
   const configPath = resolveSafePath(options.projectRoot, relativePath);
-  const { access } = await import("node:fs/promises");
   let exists = false;
   try {
     await access(configPath);

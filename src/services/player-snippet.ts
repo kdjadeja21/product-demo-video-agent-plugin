@@ -1,5 +1,21 @@
 export type PlayerSnippetFormat = "html" | "react";
 
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function escapeJsStringLiteral(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, "\\\"")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
+}
+
 export function generatePlayerSnippet(options: {
   format: PlayerSnippetFormat;
   videoSrc: string;
@@ -8,9 +24,17 @@ export function generatePlayerSnippet(options: {
 }): string {
   const flash = options.playPauseFlash !== false;
   if (options.format === "react") {
-    return reactSnippet(options.videoSrc, options.captionsSrc, flash);
+    return reactSnippet(
+      escapeJsStringLiteral(options.videoSrc),
+      escapeJsStringLiteral(options.captionsSrc),
+      flash,
+    );
   }
-  return htmlSnippet(options.videoSrc, options.captionsSrc, flash);
+  return htmlSnippet(
+    escapeHtmlAttribute(options.videoSrc),
+    escapeHtmlAttribute(options.captionsSrc),
+    flash,
+  );
 }
 
 function htmlSnippet(

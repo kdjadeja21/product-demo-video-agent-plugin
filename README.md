@@ -4,12 +4,40 @@ Generic **Agent Plugin** that turns a project’s `demo.config.json` into a narr
 
 Works with **any** web UI you can open in Playwright. No product-specific routes or branding are baked into the plugin.
 
+## Cursor Cloud Agent quickstart
+
+This plugin is built and tested primarily for reuse as an **Agent Plugin inside Cursor Cloud Agent** projects — no manual wrapper fixes or client-specific configuration needed.
+
+1. **Add the plugin to your project.** Copy or reference this directory (containing `plugin.json`, `mcp.json`, and `skills/`) so Cursor Cloud Agent can discover it. The bundled `./bin/product-demo-mcp` launcher is already executable and ESM-compatible, and `mcp.json` starts it directly — no path or permission fixes required.
+
+2. **Install once per environment.**
+
+   ```bash
+   npm install
+   npm run build
+   npx playwright install chromium
+   ```
+
+   (If you skip `npm run build`, the launcher automatically falls back to running from source via `tsx`.)
+
+3. **Check readiness before doing anything else.**
+
+   ```bash
+   npx product-demo doctor
+   ```
+
+   This reports Node version, build output, `ffmpeg`/`ffprobe`/`edge-tts`, and Playwright Chromium in one pass, with the exact fix command for anything missing. The `doctor_product_demo` MCP tool exposes the same check to the agent, so it can self-diagnose before calling `probe_demo` or `build_demo_video`.
+
+4. **Let the agent drive the rest of the workflow** through the MCP tools in the table below (`init_demo_config` → `validate_demo_config` → `probe_demo` → `build_demo_video` → `inspect_demo_output`), following [`skills/product-demo/SKILL.md`](skills/product-demo/SKILL.md).
+
 ## Requirements
 
 - Node.js 20+
 - [ffmpeg](https://ffmpeg.org/) + `ffprobe` on `PATH`
 - [`edge-tts`](https://github.com/rany2/edge-tts) on `PATH` (`pip install edge-tts`)
 - Playwright Chromium (`npx playwright install chromium`)
+
+Run `npx product-demo doctor` (or call the `doctor_product_demo` MCP tool) at any time to check all of the above in one step.
 
 ## Install (local plugin)
 
@@ -19,7 +47,7 @@ npm run build
 npx playwright install chromium
 ```
 
-Point your Agent Plugins–compatible client at this directory (`plugin.json` + `mcp.json` + `skills/`).
+Point your Agent Plugins–compatible client (such as Cursor Cloud Agent) at this directory (`plugin.json` + `mcp.json` + `skills/`).
 
 ## Quickstart (any project)
 
@@ -55,6 +83,7 @@ npx product-demo snippet --format react
 
 | Tool | Purpose |
 | --- | --- |
+| `doctor_product_demo` | Check Node, ffmpeg, ffprobe, edge-tts, build output, Playwright Chromium |
 | `init_demo_config` | Starter `demo.config.json` |
 | `validate_demo_config` | Schema, paths, deps, base URL |
 | `save_browser_session_instructions` | Playwright `storageState` guidance (no auth bypass) |

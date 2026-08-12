@@ -5,6 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { runBuild, runProbe } from "./pipeline/build.js";
+import { runDoctor } from "./pipeline/doctor.js";
 import { inspectDemoOutput } from "./pipeline/verify.js";
 import { initDemoConfig } from "./services/init-config.js";
 import { generatePlayerSnippet } from "./services/player-snippet.js";
@@ -40,10 +41,33 @@ function textResult(payload: unknown) {
   };
 }
 
+function errorResult(err: unknown) {
+  const message = err instanceof Error ? err.message : String(err);
+  return {
+    isError: true,
+    content: [
+      {
+        type: "text" as const,
+        text: `${message}\n\nRun the "doctor_product_demo" tool (or \`product-demo doctor\`) to check missing dependencies and fixes.`,
+      },
+    ],
+  };
+}
+
 const server = new McpServer({
   name: "product-demo",
   version: "0.1.0",
 });
+
+server.tool(
+  "doctor_product_demo",
+  "Check that Node, ffmpeg, ffprobe, edge-tts, the build output, and Playwright Chromium are ready before running probe/build.",
+  {},
+  async () => {
+    const report = await runDoctor();
+    return textResult(report);
+  },
+);
 
 server.tool(
   "init_demo_config",
@@ -114,13 +138,17 @@ server.tool(
     configPath: z.string().optional(),
   },
   async ({ projectRoot, configPath }) => {
-    const root = resolve(projectRoot);
-    const config = await loadDemoConfigFile(
-      root,
-      resolve(root, configPath ?? "demo.config.json"),
-    );
-    const result = await runProbe(config);
-    return textResult(result);
+    try {
+      const root = resolve(projectRoot);
+      const config = await loadDemoConfigFile(
+        root,
+        resolve(root, configPath ?? "demo.config.json"),
+      );
+      const result = await runProbe(config);
+      return textResult(result);
+    } catch (err) {
+      return errorResult(err);
+    }
   },
 );
 
@@ -132,13 +160,17 @@ server.tool(
     configPath: z.string().optional(),
   },
   async ({ projectRoot, configPath }) => {
-    const root = resolve(projectRoot);
-    const config = await loadDemoConfigFile(
-      root,
-      resolve(root, configPath ?? "demo.config.json"),
-    );
-    const result = await runBuild(config);
-    return textResult(result);
+    try {
+      const root = resolve(projectRoot);
+      const config = await loadDemoConfigFile(
+        root,
+        resolve(root, configPath ?? "demo.config.json"),
+      );
+      const result = await runBuild(config);
+      return textResult(result);
+    } catch (err) {
+      return errorResult(err);
+    }
   },
 );
 
