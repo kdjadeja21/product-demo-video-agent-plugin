@@ -1,0 +1,57 @@
+{
+  "baseUrl": "http://127.0.0.1:3000",
+  "output": {
+    "video": "public/demo/product-demo.mp4",
+    "captions": "public/demo/product-demo.vtt",
+    "draftDir": "public/demo/draft"
+  },
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "fit": "pad",
+    "background": "#0F172A"
+  },
+  "branding": {
+    "title": "Product Demo",
+    "subtitle": "Next.js-style dashboard walkthrough"
+  },
+  "auth": {
+    "storageState": "scripts/demo/storageState.json"
+  },
+  "tts": {
+    "provider": "edge-tts",
+    "voice": "en-US-AvaNeural",
+    "rate": "+0%"
+  },
+  "sections": [
+    {
+      "id": "welcome",
+      "kind": "title",
+      "text": "Welcome to the product demo."
+    },
+    {
+      "id": "dashboard",
+      "route": "/dashboard",
+      "waitForText": ["Dashboard"],
+      "failOnSelector": ["[data-skeleton='true']"],
+      "text": "The dashboard summarizes your most important metrics."
+    },
+    {
+      "id": "key-action",
+      "route": "/dashboard",
+      "focus": { "selector": "[data-demo-focus='key-action']" },
+      "text": "This is the action users take most often."
+    },
+    {
+      "id": "create",
+      "route": "/dashboard",
+      "interaction": {
+        "type": "click",
+        "selector": "[data-demo-focus='key-action']"
+      },
+      "capture": "video",
+      "text": "Click through to create a new item and continue the workflow."
+    }
+  ]
+}

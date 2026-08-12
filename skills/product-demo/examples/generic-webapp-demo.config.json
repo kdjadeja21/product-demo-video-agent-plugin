@@ -1,0 +1,43 @@
+{
+  "baseUrl": "http://127.0.0.1:4173",
+  "output": {
+    "video": "public/demo/product-demo.mp4",
+    "captions": "public/demo/product-demo.vtt",
+    "draftDir": "public/demo/draft"
+  },
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "fit": "pad",
+    "background": "#1E1033"
+  },
+  "branding": {
+    "title": "Product Demo",
+    "subtitle": "Generic web app walkthrough"
+  },
+  "tts": {
+    "provider": "edge-tts",
+    "voice": "en-US-AvaNeural",
+    "rate": "+0%"
+  },
+  "sections": [
+    {
+      "id": "welcome",
+      "kind": "title",
+      "text": "Welcome to a guided product demo."
+    },
+    {
+      "id": "home",
+      "route": "/",
+      "waitForText": ["Welcome"],
+      "text": "The home page introduces the product value in one glance."
+    },
+    {
+      "id": "cta",
+      "route": "/",
+      "focus": { "selector": "[data-demo-focus='cta']" },
+      "text": "Users start here with the primary call to action."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+/* eslint-disable */
+const { spawnSync } = require("node:child_process");
+const { existsSync } = require("node:fs");
+const { join } = require("node:path");
+
+const root = join(__dirname, "..");
+const distEntry = join(root, "dist", "mcp-server.js");
+const srcEntry = join(root, "src", "mcp-server.ts");
+
+let args;
+if (existsSync(distEntry)) {
+  args = [distEntry, ...process.argv.slice(2)];
+} else if (existsSync(srcEntry)) {
+  args = ["--import", "tsx", srcEntry, ...process.argv.slice(2)];
+} else {
+  console.error("product-demo-mcp: run npm install && npm run build first");
+  process.exit(1);
+}
+
+const result = spawnSync(process.execPath, args, {
+  stdio: "inherit",
+  cwd: root,
+  env: process.env,
+});
+process.exit(result.status ?? 1);

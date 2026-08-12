@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "product-demo": {
+      "type": "stdio",
+      "command": "./bin/product-demo-mcp",
+      "cwd": "${PLUGIN_ROOT}",
+      "args": ["--data", "${PLUGIN_DATA}"]
+    }
+  }
+}
