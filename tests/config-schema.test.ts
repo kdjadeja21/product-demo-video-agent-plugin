@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseDemoConfig } from "../src/config-schema.js";
 
 const valid = {
-  baseUrl: "http://127.0.0.1:3000",
+  baseUrl: "http://localhost:3000",
   output: {
     video: "public/demo/a.mp4",
     captions: "public/demo/a.vtt",
@@ -21,6 +21,43 @@ describe("parseDemoConfig", () => {
     expect(cfg.video.height).toBe(1080);
     expect(cfg.tts.provider).toBe("edge-tts");
     expect(cfg.resolved.video).toContain("a.mp4");
+  });
+
+  it("accepts optional settleMs on sections", () => {
+    const cfg = parseDemoConfig(
+      {
+        ...valid,
+        sections: [
+          {
+            id: "home",
+            route: "/",
+            text: "Home screen.",
+            settleMs: 400,
+          },
+        ],
+      },
+      "/tmp/project",
+    );
+    expect(cfg.sections[0]?.settleMs).toBe(400);
+  });
+
+  it("rejects negative settleMs", () => {
+    expect(() =>
+      parseDemoConfig(
+        {
+          ...valid,
+          sections: [
+            {
+              id: "home",
+              route: "/",
+              text: "Home screen.",
+              settleMs: -1,
+            },
+          ],
+        },
+        "/tmp/project",
+      ),
+    ).toThrow();
   });
 
   it("rejects route sections without route", () => {

@@ -33,7 +33,7 @@ describe("ffmpeg argv builders", () => {
     expect(args.at(-1)).toBe("/tmp/a.mp4");
   });
 
-  it("video segment args include duration", () => {
+  it("video segment args include duration and tpad", () => {
     const args = buildVideoSegmentArgs({
       inputPath: "/tmp/a.webm",
       durationSec: 3,
@@ -41,5 +41,18 @@ describe("ffmpeg argv builders", () => {
       video,
     });
     expect(args).toContain("3.000");
+    const vf = args[args.indexOf("-vf") + 1];
+    expect(vf).toContain("tpad=stop_mode=clone");
+  });
+
+  it("still segment args do not use tpad", () => {
+    const args = buildStillSegmentArgs({
+      pngPath: "/tmp/a.png",
+      durationSec: 2.5,
+      outputPath: "/tmp/a.mp4",
+      video,
+    });
+    const vf = args[args.indexOf("-vf") + 1];
+    expect(vf).not.toContain("tpad=");
   });
 });

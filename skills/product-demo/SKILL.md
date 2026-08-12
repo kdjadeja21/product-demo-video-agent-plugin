@@ -9,6 +9,18 @@ Use this skill when the user asks to create, rebuild, or update a product demo v
 
 This plugin is **product-agnostic**. Adapt routes, narration, and focus selectors to the **current** project. Never assume a specific app’s branding or URLs.
 
+## Hard rules (consumer hygiene)
+
+- Do **not** vendor this plugin into the consumer git tree (no copies under `.cursor-plugins/product-demo/`, no committed clones/`node_modules`/`dist` of this plugin).
+- Do **not** modify consumer UI, CSS, or Next/Vite config for demos. Capture uses `reducedMotion`, optional `settleMs`, and existing selectors — no `?demo=1`, no capture-only CSS classes, no `data-demo-focus` attributes, no `allowedDevOrigins` edits.
+- After a successful build, commit **only**:
+  1. `demo.config.json`
+  2. Final MP4 (`output.video`)
+  3. Final WebVTT (`output.captions`)
+- Never commit draft dirs, encode/TTS intermediates, `storageState.json`, or plugin copies.
+- Prefer `http://localhost:…` for `baseUrl` (especially in Cloud Agent environments), not `127.0.0.1`.
+- On init, ensure gitignore rules via `ensure_demo_gitignore` / `product-demo gitignore` (also run automatically by `init_demo_config`).
+
 ## Workflow
 
 1. **Config**
@@ -32,6 +44,7 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
    - Call `build_demo_video` only after probes look correct.
    - Prefer **one focus target** per busy narration beat.
    - Use **border/dim** focus (default). Do not zoom or crop UI.
+   - Focus selectors should target existing CSS / Playwright selectors already in the app.
 
 6. **Verify**
    - Call `inspect_demo_output` (or rely on build report).
@@ -43,9 +56,9 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
 ## Quality defaults
 
 - Static sections → high-res PNG holds; interactive sections → short video.
-- Encode with scale + pad (never crop).
+- Encode with scale + pad (never crop); interactive clips use temporal `tpad` so short webms match narration length.
 - Captions: external WebVTT, sentence-weighted timing.
-- Keep draft/archive folders out of commits unless the user asks.
+- Keep draft/archive folders out of commits; rely on the managed gitignore block.
 
 See `references/quality-checklist.md` and `references/troubleshooting.md`.
 

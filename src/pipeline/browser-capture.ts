@@ -133,6 +133,9 @@ async function captureRouteSection(
     const url = new URL(section.route!, config.baseUrl).toString();
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await waitForSection(page, section);
+    if (section.settleMs !== undefined && section.settleMs > 0) {
+      await page.waitForTimeout(section.settleMs);
+    }
     const focusApplied = await applyFocus(page, section);
 
     if (mode === "video") {
@@ -165,6 +168,29 @@ async function captureRouteSection(
   }
 }
 
+/** Browser context options shared by probe/build capture (exported for tests). */
+export function buildBrowserContextOptions(
+  config: ResolvedDemoConfig,
+  videoDir: string,
+) {
+  return {
+    viewport: {
+      width: config.video.width,
+      height: config.video.height,
+    },
+    deviceScaleFactor: 1,
+    reducedMotion: "reduce" as const,
+    storageState: config.resolved.storageState,
+    recordVideo: {
+      dir: videoDir,
+      size: {
+        width: config.video.width,
+        height: config.video.height,
+      },
+    },
+  };
+}
+
 async function withBrowserContext<T>(
   config: ResolvedDemoConfig,
   videoDir: string,
@@ -173,21 +199,9 @@ async function withBrowserContext<T>(
   let browser: Browser | undefined;
   try {
     browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-      viewport: {
-        width: config.video.width,
-        height: config.video.height,
-      },
-      deviceScaleFactor: 1,
-      storageState: config.resolved.storageState,
-      recordVideo: {
-        dir: videoDir,
-        size: {
-          width: config.video.width,
-          height: config.video.height,
-        },
-      },
-    });
+    const context = await browser.newContext(
+      buildBrowserContextOptions(config, videoDir),
+    );
     try {
       return await fn(context);
     } finally {

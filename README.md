@@ -10,11 +10,23 @@ Generic **Agent Plugin** that turns a project’s `demo.config.json` into a narr
 
 Works with **any** web UI you can open in Playwright. No product-specific routes or branding are baked into the plugin.
 
+## Consumer commit contract
+
+After a successful build, commit **only**:
+
+- `demo.config.json`
+- Final MP4 (`output.video`)
+- Final WebVTT (`output.captions`)
+
+Do **not** vendor this plugin into the consumer git tree. Do **not** modify consumer UI/CSS/Next config for demos. Capture settles animated UIs via Playwright `reducedMotion` and optional section `settleMs`. Prefer `http://localhost:…` for `baseUrl`.
+
+`init` / `ensure_demo_gitignore` appends managed ignore rules for draft dirs, `.cursor-plugins/product-demo/`, and `storageState.json`.
+
 ## Cursor Cloud Agent quickstart
 
 This plugin is built and tested primarily for reuse as an **Agent Plugin inside Cursor Cloud Agent** projects — no manual wrapper fixes or client-specific configuration needed.
 
-1. **Add the plugin to your project.** Copy or reference this directory (containing `plugin.json`, `mcp.json`, and `skills/`) so Cursor Cloud Agent can discover it. The bundled `./bin/product-demo-mcp` launcher is already executable and ESM-compatible, and `mcp.json` starts it directly — no path or permission fixes required.
+1. **Add the plugin to your project.** Reference this directory (containing `plugin.json`, `mcp.json`, and `skills/`) so Cursor Cloud Agent can discover it — keep it outside the consumer commit set (do not vendor a copy into app history). The bundled `./bin/product-demo-mcp` launcher is already executable and ESM-compatible, and `mcp.json` starts it directly — no path or permission fixes required.
 
 2. **Install once per environment.**
 
@@ -57,14 +69,14 @@ Point your Agent Plugins–compatible client (such as Cursor Cloud Agent) at thi
 
 ## Quickstart (any project)
 
-1. Start your app (e.g. `http://127.0.0.1:3000`).
-2. Initialize config:
+1. Start your app (e.g. `http://localhost:3000`).
+2. Initialize config (also ensures `.gitignore` rules):
 
 ```bash
 npx product-demo init --project /path/to/your-app
 ```
 
-3. Edit `demo.config.json`: set `baseUrl`, section routes, narration text, optional `focus` selectors / `auth.storageState`.
+3. Edit `demo.config.json`: set `baseUrl`, section routes, narration text, optional `focus` / `settleMs` / `auth.storageState`. Use existing CSS selectors — do not edit the app for demos.
 4. Validate and probe:
 
 ```bash
@@ -90,7 +102,8 @@ npx product-demo snippet --format react
 | Tool | Purpose |
 | --- | --- |
 | `doctor_product_demo` | Check Node, ffmpeg, ffprobe, edge-tts, build output, Playwright Chromium |
-| `init_demo_config` | Starter `demo.config.json` |
+| `init_demo_config` | Starter `demo.config.json` + gitignore rules |
+| `ensure_demo_gitignore` | Idempotent product-demo `.gitignore` block |
 | `validate_demo_config` | Schema, paths, deps, base URL |
 | `save_browser_session_instructions` | Playwright `storageState` guidance (no auth bypass) |
 | `probe_demo` | Capture-only review frames |
@@ -104,7 +117,7 @@ npx product-demo snippet --format react
 
 ```json
 {
-  "baseUrl": "http://127.0.0.1:3000",
+  "baseUrl": "http://localhost:3000",
   "output": {
     "video": "public/demo/product-demo.mp4",
     "captions": "public/demo/product-demo.vtt",
@@ -127,9 +140,10 @@ See `skills/product-demo/references/config-reference.md` and examples under `ski
 ## Design defaults
 
 - Still PNG holds for static beats; short video only when interacting
-- Focus = rounded border + light dim (no zoom/crop)
-- Encode = scale + pad to 1920×1080
+- Focus = rounded border + light dim (no zoom/crop); prefer existing selectors
+- Encode = scale + pad to 1920×1080; interactive clips use temporal `tpad`
 - Captions = external WebVTT (not burned-in)
+- Playwright `reducedMotion: "reduce"` during capture
 
 ## Development
 

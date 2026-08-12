@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://127.0.0.1:4173",
+  "baseUrl": "http://localhost:4173",
   "output": {
     "video": "public/demo/product-demo.mp4",
     "captions": "public/demo/product-demo.vtt",
@@ -36,7 +36,7 @@
     {
       "id": "cta",
       "route": "/",
-      "focus": { "selector": "[data-demo-focus='cta']" },
+      "focus": { "selector": "main button, button" },
       "text": "Users start here with the primary call to action."
     }
   ]

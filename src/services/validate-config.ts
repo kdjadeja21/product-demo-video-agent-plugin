@@ -87,6 +87,18 @@ export async function validateDemoConfig(options: {
     ids.add(section.id);
   }
 
+  warnings.push(
+    "Commit only demo.config.json + final MP4 + final VTT. Do not commit draft dirs, storageState, or a vendored copy of this plugin.",
+  );
+  warnings.push(
+    "Keep draft/plugin paths gitignored (run product-demo gitignore / ensure_demo_gitignore).",
+  );
+  if (config.baseUrl.includes("127.0.0.1")) {
+    warnings.push(
+      "Prefer http://localhost for baseUrl (especially in Cloud Agent environments) instead of 127.0.0.1.",
+    );
+  }
+
   return {
     ok: errors.length === 0,
     config,

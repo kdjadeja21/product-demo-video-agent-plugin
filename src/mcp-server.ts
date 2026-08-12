@@ -7,6 +7,7 @@ import { z } from "zod";
 import { runBuild, runProbe } from "./pipeline/build.js";
 import { runDoctor } from "./pipeline/doctor.js";
 import { inspectDemoOutput } from "./pipeline/verify.js";
+import { ensureDemoGitignore } from "./services/ensure-demo-gitignore.js";
 import { initDemoConfig } from "./services/init-config.js";
 import { generatePlayerSnippet } from "./services/player-snippet.js";
 import { saveBrowserSessionInstructions } from "./services/session-instructions.js";
@@ -71,7 +72,7 @@ server.tool(
 
 server.tool(
   "init_demo_config",
-  "Create a starter demo.config.json in the target project.",
+  "Create a starter demo.config.json in the target project and ensure product-demo .gitignore rules.",
   {
     projectRoot: z.string().describe("Absolute path to the consumer project"),
     relativePath: z
@@ -86,6 +87,18 @@ server.tool(
       relativePath,
       force,
     });
+    return textResult(result);
+  },
+);
+
+server.tool(
+  "ensure_demo_gitignore",
+  "Append idempotent product-demo ignore rules (draft dirs, plugin vendor path, storageState) to the consumer .gitignore.",
+  {
+    projectRoot: z.string().describe("Absolute path to the consumer project"),
+  },
+  async ({ projectRoot }) => {
+    const result = await ensureDemoGitignore(resolve(projectRoot));
     return textResult(result);
   },
 );

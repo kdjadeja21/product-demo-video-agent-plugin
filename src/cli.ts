@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { runBuild, runProbe } from "./pipeline/build.js";
 import { formatDoctorReport, runDoctor } from "./pipeline/doctor.js";
 import { inspectDemoOutput } from "./pipeline/verify.js";
+import { ensureDemoGitignore } from "./services/ensure-demo-gitignore.js";
 import { initDemoConfig } from "./services/init-config.js";
 import { generatePlayerSnippet } from "./services/player-snippet.js";
 import { saveBrowserSessionInstructions } from "./services/session-instructions.js";
@@ -17,6 +18,7 @@ function usage(): never {
 Commands:
   doctor [--json]
   init [--project <dir>] [--config <relpath>] [--force]
+  gitignore [--project <dir>]
   validate [--project <dir>] [--config <relpath>]
   session-instructions [--project <dir>] [--config <relpath>]
   probe [--project <dir>] [--config <relpath>]
@@ -68,6 +70,30 @@ async function main(): Promise<void> {
           ? `Created ${result.configPath}`
           : `Already exists (use --force): ${result.configPath}`,
       );
+      if (result.gitignore.alreadyPresent) {
+        console.log(
+          `Gitignore already has product-demo block: ${result.gitignore.path}`,
+        );
+      } else if (result.gitignore.created) {
+        console.log(
+          `Created ${result.gitignore.path} with product-demo ignore rules`,
+        );
+      } else {
+        console.log(
+          `Updated ${result.gitignore.path} with product-demo ignore rules`,
+        );
+      }
+      break;
+    }
+    case "gitignore": {
+      const result = await ensureDemoGitignore(projectRoot);
+      if (result.alreadyPresent) {
+        console.log(`Already present: ${result.path}`);
+      } else if (result.created) {
+        console.log(`Created ${result.path}`);
+      } else {
+        console.log(`Updated ${result.path}`);
+      }
       break;
     }
     case "validate": {
