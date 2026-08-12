@@ -88,13 +88,14 @@ function htmlPlayerMarkup(
   flash: boolean,
 ): string {
   return `<div class="pd-player" data-pd-root>
-      <div class="pd-video-wrap">
+      <div class="pd-video-wrap" data-pd-wrap>
         <video class="pd-video" playsinline preload="metadata">
           <source src="${videoSrc}" type="video/mp4" />
           <track kind="captions" src="${captionsSrc}" srclang="en" label="English" default />
         </video>
+        <div class="pd-caption" data-pd-caption aria-live="polite"></div>
         ${flash ? `<div class="pd-flash" data-pd-flash aria-hidden="true"></div>` : ""}
-        <div class="pd-chrome">
+        <div class="pd-chrome" data-pd-chrome>
 ${htmlChapterSegments(chapters)}
           <div class="pd-transport">
             <button type="button" class="pd-toggle" data-pd-toggle aria-label="Play" data-pd-paused="true">
@@ -102,6 +103,14 @@ ${htmlChapterSegments(chapters)}
               <svg data-pd-icon-pause viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" hidden><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
             </button>
             <div class="pd-time" data-pd-time>${formatPlaybackClock(0, 0)}</div>
+            <span class="pd-spacer"></span>
+            <button type="button" class="pd-cc" data-pd-cc aria-label="Toggle captions" aria-pressed="true">
+              <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7.5H9.5v-.5h-2v3h2v-.5H11v1.5c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v.5zm7 0h-1.5v-.5h-2v3h2v-.5H18v1.5c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v.5z"/></svg>
+            </button>
+            <button type="button" class="pd-fullscreen" data-pd-fullscreen aria-label="Enter fullscreen">
+              <svg data-pd-icon-enter viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+              <svg data-pd-icon-exit viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" hidden><path fill="currentColor" d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -130,7 +139,7 @@ function htmlSnippet(
     ? `  const dialog = document.querySelector("[data-pd-dialog]");
   const root = dialog || document;
   const openBtn = document.querySelector("[data-pd-open]");
-  openBtn?.addEventListener("click", () => { dialog?.showModal(); syncClock(); syncTimeline(); });
+  openBtn?.addEventListener("click", () => { dialog?.showModal(); syncClock(); syncTimeline(); setChromeVisible(true); });
   dialog?.addEventListener("close", () => { video?.pause(); });`
     : `  const root = document.querySelector("[data-pd-root]") || document;`;
 
@@ -172,6 +181,19 @@ function htmlSnippet(
     padding: 0.4rem 0.75rem 0.55rem;
     background: linear-gradient(transparent, rgba(0,0,0,0.78));
     color: #fff;
+    opacity: 1; transition: opacity 200ms ease;
+  }
+  .pd-chrome.is-idle { opacity: 0; pointer-events: none; }
+  .pd-caption {
+    position: absolute; left: 0; right: 0; bottom: var(--pd-ctrl-h, 0px); z-index: 1;
+    display: flex; justify-content: center; padding: 0 1rem 0.5rem;
+    pointer-events: none; transition: bottom 200ms ease;
+  }
+  .pd-caption span {
+    background: rgba(0,0,0,0.7); color: #fff; max-width: 100%;
+    font: 500 0.85rem/1.4 system-ui, sans-serif;
+    padding: 0.15rem 0.6rem; border-radius: 0.25rem;
+    text-align: center; white-space: pre-line;
   }
   .pd-segments { display: flex; gap: 0.4rem; align-items: flex-end; }
   .pd-segment {
@@ -196,15 +218,18 @@ function htmlSnippet(
   .pd-transport {
     display: flex; align-items: center; gap: 0.65rem; margin-top: 0.45rem;
   }
-  .pd-toggle {
+  .pd-toggle, .pd-cc, .pd-fullscreen {
     display: grid; place-items: center;
     width: 1.5rem; height: 1.5rem; padding: 0; border: 0;
-    background: transparent; color: #fff; cursor: pointer;
+    background: transparent; color: #fff; cursor: pointer; opacity: 0.85;
   }
+  .pd-cc[aria-pressed="false"] { opacity: 0.5; }
+  .pd-toggle:hover, .pd-cc:hover, .pd-fullscreen:hover { opacity: 1; }
   .pd-time {
     font: 500 0.8125rem/1 system-ui, sans-serif;
     font-variant-numeric: tabular-nums;
   }
+  .pd-spacer { flex: 1; }
   .pd-flash {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     pointer-events: none; opacity: 0; transition: opacity 160ms ease;
@@ -218,13 +243,21 @@ ${openControl}
 (() => {
 ${dialogBoot}
   const video = root.querySelector(".pd-video");
+  const wrap = root.querySelector("[data-pd-wrap]");
+  const chrome = root.querySelector("[data-pd-chrome]");
+  const captionEl = root.querySelector("[data-pd-caption]");
+  const ccBtn = root.querySelector("[data-pd-cc]");
+  const fsBtn = root.querySelector("[data-pd-fullscreen]");
   const flashEl = root.querySelector("[data-pd-flash]");
   const timeEl = root.querySelector("[data-pd-time]");
   const toggleBtn = root.querySelector("[data-pd-toggle]");
   const progressEl = root.querySelector("[data-pd-progress]");
   const progressFill = root.querySelector("[data-pd-progress-fill]");
   const chapterButtons = [...root.querySelectorAll("[data-pd-start]")];
+  const track = video?.textTracks?.[0];
   let timer;
+  let idleTimer;
+  let captionsOn = true;
   function pulse(label) {
     if (!flashEl) return;
     flashEl.textContent = label;
@@ -306,21 +339,82 @@ ${dialogBoot}
     if (video.paused) video.play();
     else video.pause();
   }
-  function showCaptions() {
-    const tracks = video?.textTracks;
-    if (tracks && tracks[0]) tracks[0].mode = "showing";
+  function updateCaptionOffset() {
+    if (!wrap) return;
+    const visible = !!(chrome && !chrome.classList.contains("is-idle"));
+    wrap.style.setProperty("--pd-ctrl-h", (visible && chrome ? chrome.offsetHeight : 0) + "px");
   }
+  function setChromeVisible(visible) {
+    if (!chrome) return;
+    chrome.classList.toggle("is-idle", !visible);
+    updateCaptionOffset();
+  }
+  function scheduleIdle() {
+    clearTimeout(idleTimer);
+    if (!video || video.paused) return;
+    idleTimer = setTimeout(() => setChromeVisible(false), 2500);
+  }
+  function wake() {
+    setChromeVisible(true);
+    scheduleIdle();
+  }
+  function renderCaption() {
+    if (!captionEl) return;
+    captionEl.replaceChildren();
+    if (!captionsOn || !track) return;
+    const active = [...(track.activeCues || [])][0];
+    if (active && active.text) {
+      const span = document.createElement("span");
+      span.textContent = active.text.replace(/<[^>]*>/g, "");
+      captionEl.appendChild(span);
+    }
+  }
+  function setCaptionsOn(on) {
+    captionsOn = on;
+    ccBtn?.setAttribute("aria-pressed", on ? "true" : "false");
+    renderCaption();
+  }
+  function toggleFullscreen() {
+    if (!wrap) return;
+    if (document.fullscreenElement === wrap) document.exitFullscreen?.();
+    else wrap.requestFullscreen?.();
+  }
+  function syncFullscreenIcon() {
+    if (!fsBtn) return;
+    const active = document.fullscreenElement === wrap;
+    fsBtn.setAttribute("aria-label", active ? "Exit fullscreen" : "Enter fullscreen");
+    const enterIcon = fsBtn.querySelector("[data-pd-icon-enter]");
+    const exitIcon = fsBtn.querySelector("[data-pd-icon-exit]");
+    if (enterIcon) enterIcon.hidden = active;
+    if (exitIcon) exitIcon.hidden = !active;
+  }
+  if (track) track.mode = "hidden";
   toggleBtn?.addEventListener("click", (event) => {
     event.stopPropagation();
     togglePlay();
   });
+  ccBtn?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setCaptionsOn(!captionsOn);
+  });
+  fsBtn?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleFullscreen();
+  });
+  document.addEventListener("fullscreenchange", syncFullscreenIcon);
+  wrap?.addEventListener("pointermove", wake);
+  wrap?.addEventListener("pointerdown", wake);
+  wrap?.addEventListener("focusin", wake);
+  wrap?.addEventListener("pointerleave", () => { if (video && !video.paused) setChromeVisible(false); });
   video?.addEventListener("click", togglePlay);
-  video?.addEventListener("play", () => { pulse("Play"); syncToggle(); });
-  video?.addEventListener("pause", () => { pulse("Pause"); syncToggle(); });
+  video?.addEventListener("play", () => { pulse("Play"); syncToggle(); scheduleIdle(); });
+  video?.addEventListener("pause", () => { pulse("Pause"); syncToggle(); clearTimeout(idleTimer); setChromeVisible(true); });
   video?.addEventListener("timeupdate", () => { syncClock(); syncTimeline(); });
-  video?.addEventListener("loadedmetadata", () => { showCaptions(); syncClock(); syncTimeline(); });
+  video?.addEventListener("loadedmetadata", () => { syncClock(); syncTimeline(); });
   video?.addEventListener("durationchange", () => { syncClock(); syncTimeline(); });
   video?.addEventListener("seeked", () => { syncClock(); syncTimeline(); });
+  window.addEventListener("resize", updateCaptionOffset);
+  track?.addEventListener("cuechange", renderCaption);
   progressEl?.addEventListener("click", (event) => {
     seekFromEvent(progressEl, 0, durationOf(), event);
   });
@@ -334,6 +428,7 @@ ${dialogBoot}
   syncClock();
   syncToggle();
   syncTimeline();
+  setChromeVisible(true);
 })();
 </script>
 `;
@@ -382,17 +477,51 @@ function reactSnippet(
   chapters?: DemoChapter[];
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const chromeRef = useRef<HTMLDivElement>(null);
+  const trackBoundRef = useRef(false);
   const [flashLabel, setFlashLabel] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id ?? null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [paused, setPaused] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [controlsHeight, setControlsHeight] = useState(0);
+  const [captionsOn, setCaptionsOn] = useState(true);
+  const [activeCue, setActiveCue] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    const el = chromeRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => setControlsHeight(el.offsetHeight));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(document.fullscreenElement === wrapRef.current);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
 
   function pulse(label: string) {
     ${flash ? `setFlashLabel(label);
     clearTimeout(flashTimer.current);
     flashTimer.current = setTimeout(() => setFlashLabel(null), 350);` : ""}
+  }
+
+  function scheduleIdle() {
+    clearTimeout(idleTimer.current);
+    if (videoRef.current?.paused) return;
+    idleTimer.current = setTimeout(() => setShowControls(false), 2500);
+  }
+
+  function wake() {
+    setShowControls(true);
+    scheduleIdle();
   }
 
   function seekTo(startSec: number, id?: string) {
@@ -428,6 +557,13 @@ function reactSnippet(
     else video.pause();
   }
 
+  function toggleFullscreen() {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    if (document.fullscreenElement === wrap) void document.exitFullscreen();
+    else void wrap.requestFullscreen();
+  }
+
   function seekFromEvent(event: { clientX: number; currentTarget: HTMLElement }, start: number, end: number) {
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
@@ -437,21 +573,36 @@ function reactSnippet(
   function onLoadedMetadata() {
     const video = videoRef.current;
     if (!video) return;
-    if (video.textTracks[0]) video.textTracks[0].mode = "showing";
+    const track = video.textTracks[0];
+    if (track && !trackBoundRef.current) {
+      trackBoundRef.current = true;
+      track.mode = "hidden";
+      track.addEventListener("cuechange", () => {
+        const cue = track.activeCues?.[0] as (TextTrackCue & { text?: string }) | undefined;
+        setActiveCue(cue?.text ? cue.text.replace(/<[^>]*>/g, "") : "");
+      });
+    }
     onTimeUpdate();
   }
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
-      <div style={{ position: "relative", background: "#111" }}>
+      <div
+        ref={wrapRef}
+        style={{ position: "relative", background: "#111" }}
+        onPointerMove={wake}
+        onPointerDown={wake}
+        onFocus={wake}
+        onPointerLeave={() => { if (!videoRef.current?.paused) setShowControls(false); }}
+      >
         <video
           ref={videoRef}
           playsInline
           preload="metadata"
           style={{ width: "100%", display: "block", background: "#111", colorScheme: "dark" }}
           onClick={togglePlay}
-          onPlay={() => { setPaused(false); pulse("Play"); }}
-          onPause={() => { setPaused(true); pulse("Pause"); }}
+          onPlay={() => { setPaused(false); pulse("Play"); scheduleIdle(); }}
+          onPause={() => { setPaused(true); pulse("Pause"); clearTimeout(idleTimer.current); setShowControls(true); }}
           onTimeUpdate={onTimeUpdate}
           onLoadedMetadata={onLoadedMetadata}
           onDurationChange={onTimeUpdate}
@@ -459,8 +610,40 @@ function reactSnippet(
           <source src="${videoSrc}" type="video/mp4" />
           <track kind="captions" src="${captionsSrc}" srcLang="en" label="English" default />
         </video>
+        {captionsOn && activeCue ? (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: showControls ? controlsHeight : 0,
+              zIndex: 1,
+              display: "flex",
+              justifyContent: "center",
+              padding: "0 1rem 0.5rem",
+              pointerEvents: "none",
+              transition: "bottom 200ms ease",
+            }}
+          >
+            <span
+              style={{
+                background: "rgba(0,0,0,0.7)",
+                color: "#fff",
+                maxWidth: "100%",
+                font: "500 0.85rem/1.4 system-ui, sans-serif",
+                padding: "0.15rem 0.6rem",
+                borderRadius: "0.25rem",
+                textAlign: "center",
+                whiteSpace: "pre-line",
+              }}
+            >
+              {activeCue}
+            </span>
+          </div>
+        ) : null}
         ${flashBlock}
         <div
+          ref={chromeRef}
           style={{
             position: "absolute",
             left: 0,
@@ -470,6 +653,9 @@ function reactSnippet(
             padding: "0.4rem 0.75rem 0.55rem",
             background: "linear-gradient(transparent, rgba(0,0,0,0.78))",
             color: "#fff",
+            opacity: showControls ? 1 : 0,
+            pointerEvents: showControls ? "auto" : "none",
+            transition: "opacity 200ms ease",
           }}
         >
           {chapters.length > 0 ? (
@@ -595,6 +781,56 @@ function reactSnippet(
             <div data-pd-time style={{ font: "500 0.8125rem/1 system-ui, sans-serif", fontVariantNumeric: "tabular-nums" }}>
               {formatPlaybackClock(currentTime, duration)}
             </div>
+            <span style={{ flex: 1 }} />
+            <button
+              type="button"
+              aria-label="Toggle captions"
+              aria-pressed={captionsOn}
+              onClick={(event) => { event.stopPropagation(); setCaptionsOn((on) => !on); }}
+              style={{
+                display: "grid",
+                placeItems: "center",
+                width: "1.5rem",
+                height: "1.5rem",
+                padding: 0,
+                border: 0,
+                background: "transparent",
+                color: "#fff",
+                opacity: captionsOn ? 0.85 : 0.5,
+                cursor: "pointer",
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                <path fill="currentColor" d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7.5H9.5v-.5h-2v3h2v-.5H11v1.5c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v.5zm7 0h-1.5v-.5h-2v3h2v-.5H18v1.5c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v.5z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+              onClick={(event) => { event.stopPropagation(); toggleFullscreen(); }}
+              style={{
+                display: "grid",
+                placeItems: "center",
+                width: "1.5rem",
+                height: "1.5rem",
+                padding: 0,
+                border: 0,
+                background: "transparent",
+                color: "#fff",
+                opacity: 0.85,
+                cursor: "pointer",
+              }}
+            >
+              {isFullscreen ? (
+                <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                  <path fill="currentColor" d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                  <path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -658,7 +894,7 @@ export function WatchDemoButton() {
 `
     : "";
 
-  return `import { useRef, useState } from "react";
+  return `import { useEffect, useRef, useState } from "react";
 
 export type DemoChapter = { id: string; label: string; startSec: number };
 

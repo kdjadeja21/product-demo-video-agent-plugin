@@ -31,6 +31,23 @@ describe("generatePlayerSnippet", () => {
     expect(html).not.toContain("pd-chapter-list");
     expect(html).not.toContain("pd-chapter-time");
     expect(html).not.toContain("0:04");
+
+    // Chrome auto-hides instead of permanently covering the video.
+    expect(html).toContain("is-idle");
+    expect(html).toContain("scheduleIdle");
+    expect(html).toContain("pointermove");
+
+    // Captions are rendered manually so they can sit above the chrome bar.
+    expect(html).toContain("data-pd-caption");
+    expect(html).toContain("--pd-ctrl-h");
+    expect(html).toContain('track.mode = "hidden"');
+    expect(html).toContain("cuechange");
+
+    // Captions toggle + fullscreen controls are present again.
+    expect(html).toContain("data-pd-cc");
+    expect(html).toContain("data-pd-fullscreen");
+    expect(html).toContain("requestFullscreen");
+    expect(html).toContain("fullscreenchange");
   });
 
   it("emits React WatchDemoButton with in-player chapter segments", () => {
@@ -53,6 +70,23 @@ describe("generatePlayerSnippet", () => {
     expect(jsx).toContain("Demo chapters");
     expect(jsx).not.toContain("pd-chapter-list");
     expect(jsx).not.toContain("minWidth: \"3rem\"");
+
+    // Chrome auto-hides instead of permanently covering the video.
+    expect(jsx).toContain("showControls");
+    expect(jsx).toContain("scheduleIdle");
+    expect(jsx).toContain("onPointerMove");
+
+    // Captions are rendered manually so they can sit above the chrome bar.
+    expect(jsx).toContain("activeCue");
+    expect(jsx).toContain("controlsHeight");
+    expect(jsx).toContain('track.mode = "hidden"');
+    expect(jsx).toContain("cuechange");
+
+    // Captions toggle + fullscreen controls are present again.
+    expect(jsx).toContain("Toggle captions");
+    expect(jsx).toContain("toggleFullscreen");
+    expect(jsx).toContain("requestFullscreen");
+    expect(jsx).toContain("fullscreenchange");
   });
 
   it("can omit the Watch Demo button", () => {
