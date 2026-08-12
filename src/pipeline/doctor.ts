@@ -114,6 +114,13 @@ export async function runDoctor(): Promise<DoctorReport> {
   };
 }
 
+export const DOCTOR_HYGIENE_TIPS = [
+  "Commit only demo.config.json + final MP4 + final VTT.",
+  "Keep draft dirs and .cursor-plugins/product-demo/ gitignored (product-demo gitignore).",
+  "Do not vendor this plugin into the consumer app git tree.",
+  "Prefer http://localhost for baseUrl; do not edit consumer UI/CSS/Next config for demos.",
+];
+
 export function formatDoctorReport(report: DoctorReport): string {
   const lines = report.checks.map((check) => {
     const status = check.ok ? "OK" : "MISSING";
@@ -121,5 +128,9 @@ export function formatDoctorReport(report: DoctorReport): string {
     return `[${status}] ${check.name}: ${check.detail}${suffix}`;
   });
   lines.push(report.ok ? "\nAll checks passed." : "\nSome checks failed; see fixes above.");
+  lines.push("\nConsumer hygiene:");
+  for (const tip of DOCTOR_HYGIENE_TIPS) {
+    lines.push(`- ${tip}`);
+  }
   return lines.join("\n");
 }

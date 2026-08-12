@@ -41,6 +41,7 @@ const sectionSchema = z
     interaction: interactionSchema.optional(),
     focus: focusSchema.optional(),
     capture: z.enum(["still", "video"]).optional(),
+    settleMs: z.number().nonnegative().optional(),
   })
   .superRefine((section, ctx) => {
     const kind = section.kind ?? "route";

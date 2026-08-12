@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://127.0.0.1:3000",
+  "baseUrl": "http://localhost:3000",
   "output": {
     "video": "public/demo/product-demo.mp4",
     "captions": "public/demo/product-demo.vtt",
@@ -35,12 +35,13 @@
       "route": "/dashboard",
       "waitForText": ["Dashboard"],
       "failOnSelector": ["[data-skeleton='true']"],
+      "settleMs": 250,
       "text": "The dashboard summarizes your most important metrics."
     },
     {
       "id": "key-action",
       "route": "/dashboard",
-      "focus": { "selector": "[data-demo-focus='key-action']" },
+      "focus": { "selector": "a[href='/new'], [aria-label='Create']" },
       "text": "This is the action users take most often."
     },
     {
@@ -48,7 +49,7 @@
       "route": "/dashboard",
       "interaction": {
         "type": "click",
-        "selector": "[data-demo-focus='key-action']"
+        "selector": "a[href='/new'], [aria-label='Create']"
       },
       "capture": "video",
       "text": "Click through to create a new item and continue the workflow."

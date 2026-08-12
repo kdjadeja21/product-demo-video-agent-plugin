@@ -60,7 +60,8 @@ export function buildVideoSegmentArgs(options: {
   outputPath: string;
   video: EncodeVideoOptions;
 }): string[] {
-  const vf = buildScalePadFilter(options.video);
+  // Freeze the last frame when the source is shorter than narration (-t caps length).
+  const vf = `${buildScalePadFilter(options.video)},tpad=stop_mode=clone:stop_duration=3600`;
   return [
     "-y",
     "-i",

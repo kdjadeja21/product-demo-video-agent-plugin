@@ -69,5 +69,7 @@ describe("formatDoctorReport", () => {
       checks: [{ name: "node", ok: true, detail: "Node.js v20.0.0" }],
     });
     expect(text).toContain("All checks passed.");
+    expect(text).toContain("Consumer hygiene:");
+    expect(text).toContain("Commit only demo.config.json + final MP4 + final VTT.");
   });
 });

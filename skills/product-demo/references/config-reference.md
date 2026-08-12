@@ -4,7 +4,7 @@
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `baseUrl` | yes | Origin of the running app (e.g. `http://127.0.0.1:3000`) |
+| `baseUrl` | yes | Origin of the running app (prefer `http://localhost:3000`) |
 | `output.video` | yes | Relative path for final MP4 |
 | `output.captions` | yes | Relative path for WebVTT |
 | `output.draftDir` | yes | Working directory for probes, audio, segments |
@@ -27,8 +27,9 @@ Paths are resolved under the project root. Absolute paths and `..` escapes are r
 | `waitForText` | Array of visible text strings to wait for |
 | `waitForSelector` | Array of selectors that must be visible |
 | `failOnSelector` | Fail if any of these (e.g. skeletons) are visible |
+| `settleMs` | Optional ms to wait after waits, before focus/screenshot (no app code required) |
 | `interaction` | `{ type: "click"|"type"|"press", ... }` |
-| `focus` | `{ selector, padding? }` — one target; border/dim |
+| `focus` | `{ selector, padding? }` — one target; border/dim; use existing CSS selectors |
 | `capture` | `still` or `video`; default `video` only when `interaction` is set |
 
 ## Examples
