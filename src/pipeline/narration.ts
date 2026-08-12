@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { DemoConfig } from "../config-schema.js";
 import { commandExists, runCommandOk } from "./process.js";
@@ -82,12 +82,10 @@ export async function concatAudioFiles(
   }
   await mkdir(dirname(outputPath), { recursive: true });
   if (files.length === 1) {
-    const { copyFile } = await import("node:fs/promises");
     await copyFile(files[0]!, outputPath);
     return probeAudioDuration(outputPath);
   }
   const listPath = `${outputPath}.txt`;
-  const { writeFile } = await import("node:fs/promises");
   const body = files
     .map((f) => `file '${f.replace(/\\/g, "/").replace(/'/g, "'\\''")}'`)
     .join("\n");

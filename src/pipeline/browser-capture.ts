@@ -82,12 +82,20 @@ async function applyFocus(page: Page, section: DemoSection): Promise<boolean> {
 async function runInteraction(page: Page, section: DemoSection): Promise<void> {
   const interaction = section.interaction;
   if (!interaction) return;
-  if (interaction.type === "click") {
-    await page.click(interaction.selector);
-  } else if (interaction.type === "type") {
-    await page.fill(interaction.selector, interaction.text);
-  } else if (interaction.type === "press") {
-    await page.keyboard.press(interaction.key);
+  switch (interaction.type) {
+    case "click":
+      await page.click(interaction.selector);
+      break;
+    case "type":
+      await page.fill(interaction.selector, interaction.text);
+      break;
+    case "press":
+      await page.keyboard.press(interaction.key);
+      break;
+    default: {
+      const _exhaustive: never = interaction;
+      throw new Error(`Unhandled interaction type: ${JSON.stringify(_exhaustive)}`);
+    }
   }
 }
 
