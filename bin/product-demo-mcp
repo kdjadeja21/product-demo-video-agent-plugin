@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-/* eslint-disable */
-const { spawnSync } = require("node:child_process");
-const { existsSync } = require("node:fs");
-const { join } = require("node:path");
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = join(__dirname, "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const distEntry = join(root, "dist", "mcp-server.js");
 const srcEntry = join(root, "src", "mcp-server.ts");
 
