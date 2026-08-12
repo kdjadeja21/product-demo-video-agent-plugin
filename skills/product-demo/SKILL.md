@@ -23,6 +23,14 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
 
 ## Workflow
 
+0. **Clarify before you build**
+   - Before creating or editing `demo.config.json`, ask the user these two questions together, in one pass:
+     - **Watch Demo integration:** "Once the demo video is built, would you like a **Watch Demo** button/link added to the product (e.g. homepage, README, or docs) that opens the video inline or in a modal, using the `generate_player_snippet` tool? If yes, where should it live, and HTML or React?"
+     - **Auth:** "Do any of the screens/routes you want covered require login? If so, I'll need you to sign in once so I can capture a Playwright `storageState.json` (via `save_browser_session_instructions`) — no auth bypass will be added."
+   - Use the answers to inform the rest of the workflow:
+     - If the user wants a Watch Demo button, plan to call `generate_player_snippet` in step 7 (below) rather than leaving it as an afterthought.
+     - If auth is needed, run `save_browser_session_instructions` before `probe_demo` and set `auth.storageState` in the config (see `references/config-reference.md`).
+
 1. **Config**
    - Look for `demo.config.json` in the project root (or path the user specifies).
    - If missing, call `init_demo_config`, then edit sections for this product.
@@ -51,7 +59,7 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
    - Confirm 1920×1080 (or configured size), A/V present, VTT duration close to video.
 
 7. **Optional player**
-   - `generate_player_snippet` for native `<video>` + WebVTT (not burned-in captions).
+   - If the user asked for a Watch Demo button in step 0, call `generate_player_snippet` now (native `<video>` + WebVTT, not burned-in captions) using their preferred format (HTML or React) and placement.
 
 ## Quality defaults
 
