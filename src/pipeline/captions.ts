@@ -28,13 +28,18 @@ export function humanizeSectionId(id: string): string {
 
 /** Compact display timestamp for chapter buttons (`0:05`, `1:02:03`). */
 export function formatChapterTimestamp(seconds: number): string {
-  const clamped = Math.max(0, Math.floor(seconds));
+  const clamped = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
   const hours = Math.floor(clamped / 3600);
   const minutes = Math.floor((clamped % 3600) / 60);
   const secs = clamped % 60;
   const pad = (n: number) => String(n).padStart(2, "0");
   if (hours > 0) return `${hours}:${pad(minutes)}:${pad(secs)}`;
   return `${minutes}:${pad(secs)}`;
+}
+
+/** Playback clock shown on the Watch Demo player (`0:31 / 1:11`). */
+export function formatPlaybackClock(currentSec: number, durationSec: number): string {
+  return `${formatChapterTimestamp(currentSec)} / ${formatChapterTimestamp(durationSec)}`;
 }
 
 export function buildChapters(sections: SectionTiming[]): DemoChapter[] {

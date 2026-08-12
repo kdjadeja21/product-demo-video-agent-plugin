@@ -1,5 +1,6 @@
 import {
   formatChapterTimestamp,
+  formatPlaybackClock,
   type DemoChapter,
 } from "../pipeline/captions.js";
 
@@ -91,10 +92,11 @@ function htmlPlayerMarkup(
 ): string {
   return `<div class="pd-player" data-pd-root>
       <div class="pd-video-wrap">
-        <video class="pd-video" controls playsinline>
+        <video class="pd-video" controls playsinline preload="metadata">
           <source src="${videoSrc}" type="video/mp4" />
           <track kind="captions" src="${captionsSrc}" srclang="en" label="English" default />
         </video>
+        <div class="pd-time" data-pd-time>${formatPlaybackClock(0, 0)}</div>
         ${flash ? `<div class="pd-flash" data-pd-flash aria-hidden="true"></div>` : ""}
       </div>
       ${htmlChapterButtons(chapters)}
@@ -123,7 +125,7 @@ function htmlSnippet(
     ? `  const dialog = document.querySelector("[data-pd-dialog]");
   const root = dialog || document;
   const openBtn = document.querySelector("[data-pd-open]");
-  openBtn?.addEventListener("click", () => dialog?.showModal());
+  openBtn?.addEventListener("click", () => { dialog?.showModal(); syncClock(); });
   dialog?.addEventListener("close", () => { video?.pause(); });`
     : `  const root = document.querySelector("[data-pd-root]") || document;`;
 
@@ -143,8 +145,8 @@ function htmlSnippet(
   .pd-demo-dialog {
     border: 0;
     padding: 1rem;
-    max-width: min(960px, 96vw);
-    width: 100%;
+    width: min(960px, 96vw);
+    max-width: 96vw;
     border-radius: 0.5rem;
   }
   .pd-demo-dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
@@ -156,10 +158,27 @@ function htmlSnippet(
       : ""
   }
   .pd-player { position: relative; width: 100%; }
-  .pd-video-wrap { position: relative; }
-  .pd-player video { width: 100%; display: block; background: #111; }
+  .pd-video-wrap { position: relative; background: #111; }
+  .pd-player video {
+    width: 100%; display: block; background: #111; color-scheme: dark;
+  }
+  .pd-time {
+    position: absolute;
+    left: 3.25rem;
+    bottom: 0.85rem;
+    z-index: 2;
+    pointer-events: none;
+    color: #fff;
+    font: 500 0.8125rem/1 system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.85);
+  }
+  .pd-player video::-webkit-media-controls-current-time-display,
+  .pd-player video::-webkit-media-controls-time-remaining-display {
+    display: none;
+  }
   .pd-flash {
-    position: absolute; inset: 0; display: grid; place-items: center;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     pointer-events: none; opacity: 0; transition: opacity 160ms ease;
     font: 600 1.25rem/1 system-ui, sans-serif; color: #fff;
     text-shadow: 0 1px 8px rgba(0,0,0,.6);
@@ -189,6 +208,7 @@ ${openControl}
 ${dialogBoot}
   const video = root.querySelector(".pd-video");
   const flashEl = root.querySelector("[data-pd-flash]");
+  const timeEl = root.querySelector("[data-pd-time]");
   const chapterButtons = [...root.querySelectorAll("[data-pd-start]")];
   let timer;
   function pulse(label) {
@@ -198,10 +218,25 @@ ${dialogBoot}
     clearTimeout(timer);
     timer = setTimeout(() => flashEl.classList.remove("is-on"), 350);
   }
+  function formatClock(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
+    const clamped = Math.floor(seconds);
+    const hours = Math.floor(clamped / 3600);
+    const minutes = Math.floor((clamped % 3600) / 60);
+    const secs = clamped % 60;
+    const pad = (n) => String(n).padStart(2, "0");
+    if (hours > 0) return hours + ":" + pad(minutes) + ":" + pad(secs);
+    return minutes + ":" + pad(secs);
+  }
+  function syncClock() {
+    if (!video || !timeEl) return;
+    timeEl.textContent = formatClock(video.currentTime) + " / " + formatClock(video.duration);
+  }
   function seekTo(start) {
     if (!video) return;
     video.currentTime = start;
     video.play?.();
+    syncClock();
   }
   function syncActiveChapter() {
     if (!video || chapterButtons.length === 0) return;
@@ -217,13 +252,17 @@ ${dialogBoot}
   }
   video?.addEventListener("play", () => pulse("Play"));
   video?.addEventListener("pause", () => pulse("Pause"));
-  video?.addEventListener("timeupdate", syncActiveChapter);
+  video?.addEventListener("timeupdate", () => { syncClock(); syncActiveChapter(); });
+  video?.addEventListener("loadedmetadata", syncClock);
+  video?.addEventListener("durationchange", syncClock);
+  video?.addEventListener("seeked", syncClock);
   for (const btn of chapterButtons) {
     btn.addEventListener("click", () => {
       seekTo(Number(btn.getAttribute("data-pd-start") || 0));
       syncActiveChapter();
     });
   }
+  syncClock();
 })();
 </script>
 `;
@@ -252,9 +291,9 @@ function reactSnippet(
             aria-hidden
             style={{
               position: "absolute",
-              inset: 0,
-              display: "grid",
-              placeItems: "center",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
               pointerEvents: "none",
               color: "#fff",
               fontWeight: 600,
@@ -274,6 +313,8 @@ function reactSnippet(
   const videoRef = useRef<HTMLVideoElement>(null);
   const [flashLabel, setFlashLabel] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id ?? null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function pulse(label: string) {
@@ -288,11 +329,19 @@ function reactSnippet(
     video.currentTime = startSec;
     void video.play();
     setActiveId(id);
+    setCurrentTime(startSec);
+  }
+
+  function syncClock(video: HTMLVideoElement) {
+    setCurrentTime(video.currentTime);
+    if (Number.isFinite(video.duration)) setDuration(video.duration);
   }
 
   function onTimeUpdate() {
     const video = videoRef.current;
-    if (!video || chapters.length === 0) return;
+    if (!video) return;
+    syncClock(video);
+    if (chapters.length === 0) return;
     let current = chapters[0]!;
     for (const chapter of chapters) {
       if (chapter.startSec <= video.currentTime + 0.05) current = chapter;
@@ -302,19 +351,38 @@ function reactSnippet(
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", background: "#111" }}>
         <video
           ref={videoRef}
           controls
           playsInline
-          style={{ width: "100%", display: "block", background: "#111" }}
+          preload="metadata"
+          style={{ width: "100%", display: "block", background: "#111", colorScheme: "dark" }}
           onPlay={() => pulse("Play")}
           onPause={() => pulse("Pause")}
           onTimeUpdate={onTimeUpdate}
+          onLoadedMetadata={onTimeUpdate}
+          onDurationChange={onTimeUpdate}
         >
           <source src="${videoSrc}" type="video/mp4" />
           <track kind="captions" src="${captionsSrc}" srcLang="en" label="English" default />
         </video>
+        <div
+          data-pd-time
+          style={{
+            position: "absolute",
+            left: "3.25rem",
+            bottom: "0.85rem",
+            zIndex: 2,
+            pointerEvents: "none",
+            color: "#fff",
+            font: "500 0.8125rem/1 system-ui, sans-serif",
+            fontVariantNumeric: "tabular-nums",
+            textShadow: "0 1px 4px rgba(0,0,0,0.85)",
+          }}
+        >
+          {formatPlaybackClock(currentTime, duration)}
+        </div>
         ${flashBlock}
       </div>
       {chapters.length > 0 ? (
@@ -386,8 +454,8 @@ export function WatchDemoButton() {
         style={{
           border: 0,
           padding: "1rem",
-          maxWidth: "min(960px, 96vw)",
-          width: "100%",
+          width: "min(960px, 96vw)",
+          maxWidth: "96vw",
           borderRadius: "0.5rem",
         }}
       >
@@ -422,13 +490,17 @@ export type DemoChapter = { id: string; label: string; startSec: number };
 export const PRODUCT_DEMO_CHAPTERS: DemoChapter[] = ${chaptersLit};
 
 function formatChapterTimestamp(seconds: number): string {
-  const clamped = Math.max(0, Math.floor(seconds));
+  const clamped = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
   const hours = Math.floor(clamped / 3600);
   const minutes = Math.floor((clamped % 3600) / 60);
   const secs = clamped % 60;
   const pad = (n: number) => String(n).padStart(2, "0");
   if (hours > 0) return \`\${hours}:\${pad(minutes)}:\${pad(secs)}\`;
   return \`\${minutes}:\${pad(secs)}\`;
+}
+
+function formatPlaybackClock(currentSec: number, durationSec: number): string {
+  return \`\${formatChapterTimestamp(currentSec)} / \${formatChapterTimestamp(durationSec)}\`;
 }
 
 ${playerComponent}

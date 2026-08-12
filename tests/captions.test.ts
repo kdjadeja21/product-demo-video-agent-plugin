@@ -5,6 +5,7 @@ import {
   buildWebVtt,
   defaultChaptersRelativePath,
   formatChapterTimestamp,
+  formatPlaybackClock,
   formatVttTimestamp,
   humanizeSectionId,
   parseVttDuration,
@@ -48,6 +49,9 @@ describe("captions", () => {
     expect(humanizeSectionId("key-action")).toBe("Key Action");
     expect(formatChapterTimestamp(65)).toBe("1:05");
     expect(formatChapterTimestamp(3661)).toBe("1:01:01");
+    expect(formatChapterTimestamp(Number.NaN)).toBe("0:00");
+    expect(formatPlaybackClock(31, 71)).toBe("0:31 / 1:11");
+    expect(formatPlaybackClock(Number.NaN, Number.NaN)).toBe("0:00 / 0:00");
     expect(defaultChaptersRelativePath("public/demo/a.vtt")).toBe(
       "public/demo/a.chapters.json",
     );

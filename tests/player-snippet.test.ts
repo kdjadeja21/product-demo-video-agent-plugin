@@ -23,6 +23,11 @@ describe("generatePlayerSnippet", () => {
     expect(html).toContain('data-pd-start="4.5"');
     expect(html).toContain("Welcome");
     expect(html).toContain("0:04");
+    expect(html).toContain('data-pd-time');
+    expect(html).toContain("0:00 / 0:00");
+    expect(html).toContain("syncClock");
+    expect(html).toContain("loadedmetadata");
+    expect(html).toContain("color-scheme: dark");
   });
 
   it("emits React WatchDemoButton and chapter seek UI", () => {
@@ -39,6 +44,10 @@ describe("generatePlayerSnippet", () => {
     expect(jsx).toContain("/demo/a.mp4");
     expect(jsx).toContain('id: "welcome"');
     expect(jsx).toContain("startSec: 4.5");
+    expect(jsx).toContain("data-pd-time");
+    expect(jsx).toContain("formatPlaybackClock");
+    expect(jsx).toContain('preload="metadata"');
+    expect(jsx).toContain('colorScheme: "dark"');
   });
 
   it("can omit the Watch Demo button", () => {
@@ -52,5 +61,7 @@ describe("generatePlayerSnippet", () => {
     expect(html).not.toContain("Watch Demo</button>");
     expect(html).not.toContain("data-pd-open");
     expect(html).toContain('data-pd-start="0"');
+    expect(html).toContain('data-pd-time');
+    expect(html).toContain("0:00 / 0:00");
   });
 });
