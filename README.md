@@ -99,7 +99,7 @@ npx product-demo inspect --project /path/to/your-app
 npx product-demo snippet --format react --project /path/to/your-app
 ```
 
-The snippet includes a **Watch Demo** button/dialog and a **clickable chapter timestamp** list derived from demo sections.
+The snippet includes a **Watch Demo** button/dialog, an in-player **chapter progress bar**, and a **current / total** playback clock.
 
 ## MCP tools
 
@@ -113,7 +113,7 @@ The snippet includes a **Watch Demo** button/dialog and a **clickable chapter ti
 | `probe_demo` | Capture-only review frames |
 | `build_demo_video` | Full pipeline |
 | `inspect_demo_output` | ffprobe + sample frames |
-| `generate_player_snippet` | HTML/React Watch Demo + WebVTT + clickable chapters |
+| `generate_player_snippet` | HTML/React Watch Demo + WebVTT + in-player chapters |
 
 `mcp.json` launches `./bin/product-demo-mcp` with `${PLUGIN_DATA}` for cache/state.
 
@@ -148,7 +148,7 @@ See `skills/product-demo/references/config-reference.md` and examples under `ski
 - Focus = rounded border + light dim (no zoom/crop); prefer existing selectors
 - Encode = scale + pad to 1920×1080; interactive clips use temporal `tpad`
 - Captions = external WebVTT (not burned-in)
-- Chapters = seekable section list in the Watch Demo player
+- Chapters = seekable segments on the Watch Demo player progress bar
 - Default landing CTA = Watch Demo button after build
 - Playwright `reducedMotion: "reduce"` during capture
 
