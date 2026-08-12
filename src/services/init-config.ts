@@ -57,6 +57,7 @@ const DEFAULT_CONFIG = `{
   "output": {
     "video": "public/demo/product-demo.mp4",
     "captions": "public/demo/product-demo.vtt",
+    "chapters": "public/demo/product-demo.chapters.json",
     "draftDir": "public/demo/draft"
   },
   "video": {

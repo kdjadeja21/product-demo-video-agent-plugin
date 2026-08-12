@@ -9,6 +9,7 @@
 - [ ] Final MP4 is configured resolution (default 1920×1080) via pad, not crop.
 - [ ] WebVTT exists beside the video; cues read well and track audio length.
 - [ ] Inspect sample frames (first / mid / last) look sharp enough for UI text.
-- [ ] Commits include **only** `demo.config.json` + final MP4 + final VTT.
+- [ ] Commits include `demo.config.json` + final MP4 + final VTT + chapters JSON + Watch Demo landing CTA.
+- [ ] Watch Demo on `/` opens the player with a clickable chapter timestamp list.
 - [ ] Draft/plugin paths covered by managed gitignore; plugin not vendored into the app.
 - [ ] No secrets or demo auth bypasses introduced.
