@@ -214,7 +214,7 @@ server.tool(
 
 server.tool(
   "generate_player_snippet",
-  "Produce HTML or React Watch Demo snippets with native video, WebVTT captions, in-player chapter segments, and a current/total playback clock.",
+  "Produce HTML or React Watch Demo snippets with native video controls, WebVTT captions, and chapter seek buttons. Closing the dialog pauses and resets the video.",
   {
     format: z.enum(["html", "react"]).optional(),
     videoSrc: z.string().optional(),
