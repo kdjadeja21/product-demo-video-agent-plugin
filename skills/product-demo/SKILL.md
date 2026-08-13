@@ -1,6 +1,6 @@
 ---
 name: product-demo
-description: Create or rebuild narrated product demo videos with browser capture, WebVTT captions, focus highlights, in-player chapter segments, and a default Watch Demo landing-page button via demo.config.json.
+description: Create or rebuild narrated product demo videos with browser capture, WebVTT captions, focus highlights, native Watch Demo video controls with chapter seek buttons, and a default landing-page button via demo.config.json.
 ---
 
 # Product Demo Video
@@ -13,7 +13,7 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
 
 - Do **not** vendor this plugin into the consumer git tree (no copies under `.cursor-plugins/product-demo/`, no committed clones/`node_modules`/`dist` of this plugin).
 - Do **not** modify consumer UI, CSS, or Next/Vite config **for capture** (no `?demo=1`, no capture-only CSS classes, no `data-demo-focus` attributes, no `allowedDevOrigins` edits). Capture uses `reducedMotion`, optional `settleMs`, and existing selectors.
-- **Exception — Watch Demo CTA:** After a successful build, **do** add a **Watch Demo** button on the product’s **default landing page** (route `/` / homepage) using `generate_player_snippet`. That player includes clickable chapter segments on the progress bar and a current/total playback clock. Prefer React (`WatchDemoButton`) when the app is React/Next; otherwise paste the HTML fragment. Keep the change minimal and match existing page styles where practical.
+- **Exception — Watch Demo CTA:** After a successful build, **do** add a **Watch Demo** button on the product’s **default landing page** (route `/` / homepage) using `generate_player_snippet`. That player uses native `<video controls>` (play, seek, mute/volume, captions, fullscreen) plus chapter seek buttons under the video. Closing the dialog pauses and resets playback. Prefer React (`WatchDemoButton`) when the app is React/Next; otherwise paste the HTML fragment. Keep the change minimal and match existing page styles where practical.
 - After a successful build, commit:
   1. `demo.config.json`
   2. Final MP4 (`output.video`)
@@ -61,7 +61,7 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
    - Confirm 1920×1080 (or configured size), A/V present, VTT duration close to video.
 
 7. **Watch Demo on the landing page (default)**
-   - Call `generate_player_snippet` with `projectRoot` so chapters load from the built chapters JSON (native `<video>` + WebVTT + **in-player chapter segments**, not burned-in captions and not a separate timestamp list).
+   - Call `generate_player_snippet` with `projectRoot` so chapters load from the built chapters JSON (native `<video controls>` + WebVTT + **chapter seek buttons**, not burned-in captions and not a custom transport bar).
    - Detect the app stack: React/Next → `format: "react"` and mount `WatchDemoButton` on the homepage; otherwise use the HTML fragment.
    - Place the CTA on the **default landing page** (`/`) so users can open the demo and jump by chapter on the player.
    - Commit the CTA files together with config + final media (see hard rules).
@@ -71,7 +71,7 @@ This plugin is **product-agnostic**. Adapt routes, narration, and focus selector
 - Static sections → high-res PNG holds; interactive sections → short video.
 - Encode with scale + pad (never crop); interactive clips use temporal `tpad` so short webms match narration length.
 - Captions: external WebVTT, sentence-weighted timing.
-- Chapters: one seekable segment per section (label from section id) on the Watch Demo player progress bar.
+- Chapters: one seek button per section (label from section id) under the native Watch Demo player.
 - Keep draft/archive folders out of commits; rely on the managed gitignore block.
 
 See `references/quality-checklist.md` and `references/troubleshooting.md`.

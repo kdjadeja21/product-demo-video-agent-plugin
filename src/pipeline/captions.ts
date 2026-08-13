@@ -37,7 +37,7 @@ export function formatChapterTimestamp(seconds: number): string {
   return `${minutes}:${pad(secs)}`;
 }
 
-/** Playback clock shown on the Watch Demo player (`0:31 / 1:11`). */
+/** Playback clock (`0:31 / 1:11`). */
 export function formatPlaybackClock(currentSec: number, durationSec: number): string {
   return `${formatChapterTimestamp(currentSec)} / ${formatChapterTimestamp(durationSec)}`;
 }

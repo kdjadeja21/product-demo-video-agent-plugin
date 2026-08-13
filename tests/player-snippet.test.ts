@@ -7,7 +7,7 @@ describe("generatePlayerSnippet", () => {
     { id: "home", label: "Home", startSec: 4.5 },
   ];
 
-  it("emits HTML Watch Demo button, video, track, and in-player chapters", () => {
+  it("emits HTML Watch Demo button, native video controls, track, and chapter buttons", () => {
     const html = generatePlayerSnippet({
       format: "html",
       videoSrc: "/demo/a.mp4",
@@ -15,42 +15,29 @@ describe("generatePlayerSnippet", () => {
       chapters,
     });
     expect(html).toContain("Watch Demo");
-    expect(html).toContain('data-pd-open');
-    expect(html).toContain('<source src="/demo/a.mp4"');
-    expect(html).toContain('src="/demo/a.vtt"');
-    expect(html).toContain('kind="captions"');
-    expect(html).toContain('data-pd-start="0"');
-    expect(html).toContain('data-pd-start="4.5"');
+    expect(html).toContain("data-pd-open");
+    expect(html).toContain("<source src=\"/demo/a.mp4\"");
+    expect(html).toContain("src=\"/demo/a.vtt\"");
+    expect(html).toContain("kind=\"captions\"");
+    expect(html).toContain("controls");
+    expect(html).toContain("playsinline");
+    expect(html).toContain("data-pd-start=\"0\"");
+    expect(html).toContain("data-pd-start=\"4.5\"");
     expect(html).toContain("Welcome");
-    expect(html).toContain("pd-segments");
-    expect(html).toContain("pd-segment-label");
-    expect(html).toContain('data-pd-time');
-    expect(html).toContain("0:00 / 0:00");
-    expect(html).toContain("syncClock");
-    expect(html).toContain("loadedmetadata");
+    expect(html).toContain("pd-chapters");
+    expect(html).toContain("Demo chapters");
+    expect(html).toContain("stopPlayback");
+    expect(html).toContain("video.pause()");
+    expect(html).toContain("video.currentTime = 0");
+    expect(html).toContain("dialog?.addEventListener(\"close\"");
     expect(html).not.toContain("pd-chapter-list");
-    expect(html).not.toContain("pd-chapter-time");
-    expect(html).not.toContain("0:04");
-
-    // Chrome auto-hides instead of permanently covering the video.
-    expect(html).toContain("is-idle");
-    expect(html).toContain("scheduleIdle");
-    expect(html).toContain("pointermove");
-
-    // Captions are rendered manually so they can sit above the chrome bar.
-    expect(html).toContain("data-pd-caption");
-    expect(html).toContain("--pd-ctrl-h");
-    expect(html).toContain('track.mode = "hidden"');
-    expect(html).toContain("cuechange");
-
-    // Captions toggle + fullscreen controls are present again.
-    expect(html).toContain("data-pd-cc");
-    expect(html).toContain("data-pd-fullscreen");
-    expect(html).toContain("requestFullscreen");
-    expect(html).toContain("fullscreenchange");
+    expect(html).not.toContain("pd-chrome");
+    expect(html).not.toContain("data-pd-cc");
+    expect(html).not.toContain("is-idle");
+    expect(html).not.toContain("scheduleIdle");
   });
 
-  it("emits React WatchDemoButton with in-player chapter segments", () => {
+  it("emits React WatchDemoButton with native controls and dialog stop", () => {
     const jsx = generatePlayerSnippet({
       format: "react",
       videoSrc: "/demo/a.mp4",
@@ -62,31 +49,22 @@ describe("generatePlayerSnippet", () => {
     expect(jsx).toContain("export function WatchDemoButton");
     expect(jsx).toContain("PRODUCT_DEMO_CHAPTERS");
     expect(jsx).toContain("/demo/a.mp4");
-    expect(jsx).toContain('id: "welcome"');
+    expect(jsx).toContain("id: \"welcome\"");
     expect(jsx).toContain("startSec: 4.5");
-    expect(jsx).toContain("data-pd-time");
-    expect(jsx).toContain("formatPlaybackClock");
-    expect(jsx).toContain('preload="metadata"');
+    expect(jsx).toContain("preload=\"metadata\"");
+    expect(jsx).toContain("controls");
+    expect(jsx).toContain("playsInline");
     expect(jsx).toContain("Demo chapters");
+    expect(jsx).toContain("onClose={stopPlayback}");
+    expect(jsx).toContain("video.pause()");
+    expect(jsx).toContain("video.currentTime = 0");
+    expect(jsx).toContain("seekTo");
     expect(jsx).not.toContain("pd-chapter-list");
-    expect(jsx).not.toContain("minWidth: \"3rem\"");
-
-    // Chrome auto-hides instead of permanently covering the video.
-    expect(jsx).toContain("showControls");
-    expect(jsx).toContain("scheduleIdle");
-    expect(jsx).toContain("onPointerMove");
-
-    // Captions are rendered manually so they can sit above the chrome bar.
-    expect(jsx).toContain("activeCue");
-    expect(jsx).toContain("controlsHeight");
-    expect(jsx).toContain('track.mode = "hidden"');
-    expect(jsx).toContain("cuechange");
-
-    // Captions toggle + fullscreen controls are present again.
-    expect(jsx).toContain("Toggle captions");
-    expect(jsx).toContain("toggleFullscreen");
-    expect(jsx).toContain("requestFullscreen");
-    expect(jsx).toContain("fullscreenchange");
+    expect(jsx).not.toContain("showControls");
+    expect(jsx).not.toContain("scheduleIdle");
+    expect(jsx).not.toContain("Toggle captions");
+    expect(jsx).not.toContain("toggleFullscreen");
+    expect(jsx).not.toContain("formatPlaybackClock");
   });
 
   it("can omit the Watch Demo button", () => {
@@ -99,9 +77,8 @@ describe("generatePlayerSnippet", () => {
     });
     expect(html).not.toContain("Watch Demo</button>");
     expect(html).not.toContain("data-pd-open");
-    expect(html).toContain('data-pd-start="0"');
-    expect(html).toContain('data-pd-time');
-    expect(html).toContain("0:00 / 0:00");
-    expect(html).not.toContain("pd-chapter-time");
+    expect(html).toContain("controls");
+    expect(html).toContain("data-pd-start=\"0\"");
+    expect(html).toContain("Welcome");
   });
 });

@@ -16,7 +16,7 @@ The agent installs the plugin, writes the config, captures the walkthrough, and 
 
 - Narrated MP4 (1080p)
 - WebVTT captions
-- Chapter markers on the player progress bar
+- Chapter seek buttons under the native video player
 - A **Watch Demo** button on `/`
 
 ## After a successful build, commit
