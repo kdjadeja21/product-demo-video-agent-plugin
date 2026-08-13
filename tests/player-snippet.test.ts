@@ -19,6 +19,7 @@ describe("generatePlayerSnippet", () => {
     expect(html).toContain("<source src=\"/demo/a.mp4\"");
     expect(html).toContain("src=\"/demo/a.vtt\"");
     expect(html).toContain("kind=\"captions\"");
+    expect(html).not.toContain("default />");
     expect(html).toContain("controls");
     expect(html).toContain("playsinline");
     expect(html).toContain("data-pd-start=\"0\"");

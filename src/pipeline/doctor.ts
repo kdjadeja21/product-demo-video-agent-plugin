@@ -77,7 +77,11 @@ function dependencyChecks(dependencies: DependencyReport): DoctorCheck[] {
     {
       name: "ffmpeg",
       ok: dependencies.ffmpeg,
-      detail: dependencies.ffmpeg ? "ffmpeg found on PATH" : "ffmpeg not found on PATH",
+      detail: dependencies.ffmpeg
+        ? dependencies.ffmpegSubtitlesFilter
+          ? "ffmpeg found on PATH (can burn-in captions)"
+          : "ffmpeg found on PATH (no subtitles filter; captions stay sidecar-only)"
+        : "ffmpeg not found on PATH",
       fix: dependencies.ffmpeg
         ? undefined
         : "Install ffmpeg and ensure it is on PATH (e.g. `apt-get install ffmpeg`).",
@@ -115,7 +119,7 @@ export async function runDoctor(): Promise<DoctorReport> {
 }
 
 export const DOCTOR_HYGIENE_TIPS = [
-  "Commit only demo.config.json + final MP4 + final VTT.",
+  "Commit demo.config.json + final MP4 + final VTT + chapters JSON. Watch Demo landing CTA is optional.",
   "Keep draft dirs and .cursor-plugins/product-demo/ gitignored (product-demo gitignore).",
   "Do not vendor this plugin into the consumer app git tree.",
   "Prefer http://localhost for baseUrl; do not edit consumer UI/CSS/Next config for demos.",

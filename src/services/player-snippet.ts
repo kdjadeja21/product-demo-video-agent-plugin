@@ -78,7 +78,7 @@ function htmlPlayerMarkup(
   return `<div class="pd-player" data-pd-root>
       <video class="pd-video" controls playsinline preload="metadata">
         <source src="${videoSrc}" type="video/mp4" />
-        <track kind="captions" src="${captionsSrc}" srclang="en" label="English" default />
+        <track kind="captions" src="${captionsSrc}" srclang="en" label="English" />
       </video>
 ${chapterRow}
     </div>`;
@@ -107,7 +107,7 @@ function htmlSnippet(
   const openBtn = document.querySelector("[data-pd-open]");`
     : `  const root = document.querySelector("[data-pd-root]") || document;`;
 
-  return `<!-- product-demo: paste onto the default landing page (route "/") -->
+  return `<!-- product-demo: optional in-app player; default share path is the burned-in MP4 embed/link -->
 <style>
   ${
     watchDemoButton
@@ -218,7 +218,7 @@ function reactSnippet(
         style={{ width: "100%", display: "block", background: "#111" }}
       >
         <source src="${videoSrc}" type="video/mp4" />
-        <track kind="captions" src="${captionsSrc}" srcLang="en" label="English" default />
+        <track kind="captions" src="${captionsSrc}" srcLang="en" label="English" />
       </video>
       {chapters.length > 0 ? (
         <div

@@ -1,6 +1,10 @@
 import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { ResolvedDemoConfig } from "../config-schema.js";
+import {
+  buildViewingInstructions,
+  guessServedMediaUrl,
+} from "../services/viewing.js";
 import { captureForBuild, probeDemo, type CaptureArtifact } from "./browser-capture.js";
 import {
   buildChapters,
@@ -9,7 +13,9 @@ import {
   type DemoChapter,
   type SectionTiming,
 } from "./captions.js";
+import { checkDependencies } from "./deps.js";
 import {
+  burnSubtitlesIntoVideo,
   concatVideoSegments,
   encodeStillSegment,
   encodeVideoSegment,
@@ -20,7 +26,6 @@ import {
   synthesizeAllSections,
   type NarrationResult,
 } from "./narration.js";
-import { checkDependencies } from "./deps.js";
 import { inspectDemoOutput, type InspectReport } from "./verify.js";
 
 export interface BuildResult {
@@ -31,6 +36,9 @@ export interface BuildResult {
   sectionTimings: SectionTiming[];
   chapters: DemoChapter[];
   inspect: InspectReport;
+  captionsBurnedIn: boolean;
+  playUrl?: string;
+  viewingInstructions: string;
 }
 
 export async function runProbe(config: ResolvedDemoConfig) {
@@ -124,7 +132,26 @@ export async function runBuild(config: ResolvedDemoConfig): Promise<BuildResult>
   const chaptersDraft = join(draftDir, "product-demo.chapters.json");
   await writeFile(chaptersDraft, chaptersJson, "utf8");
 
-  await copyFile(muxedDraft, config.resolved.video);
+  const captionedDraft = join(draftDir, "product-demo.captioned.mp4");
+  let captionsBurnedIn = false;
+  let captionsBurnError: string | undefined;
+  if (deps.ffmpegSubtitlesFilter) {
+    try {
+      await burnSubtitlesIntoVideo({
+        videoPath: muxedDraft,
+        captionsPath: captionsDraft,
+        outputPath: captionedDraft,
+      });
+      captionsBurnedIn = true;
+    } catch (err) {
+      captionsBurnError = err instanceof Error ? err.message : String(err);
+      await copyFile(muxedDraft, captionedDraft);
+    }
+  } else {
+    await copyFile(muxedDraft, captionedDraft);
+  }
+
+  await copyFile(captionedDraft, config.resolved.video);
   await copyFile(captionsDraft, config.resolved.captions);
   await copyFile(chaptersDraft, config.resolved.chapters);
 
@@ -136,10 +163,26 @@ export async function runBuild(config: ResolvedDemoConfig): Promise<BuildResult>
     expectedHeight: config.video.height,
   });
 
+  const playUrl = guessServedMediaUrl(config.baseUrl, config.output.video);
+  const viewingInstructions = buildViewingInstructions({
+    videoPath: config.resolved.video,
+    playUrl,
+    captionsBurnedIn,
+  });
+
   await writeFile(
     join(draftDir, "build-report.json"),
     JSON.stringify(
-      { sectionTimings, chapters, inspect, narrations: summarizeNarration(narrations) },
+      {
+        sectionTimings,
+        chapters,
+        inspect,
+        captionsBurnedIn,
+        captionsBurnError,
+        playUrl,
+        viewingInstructions,
+        narrations: summarizeNarration(narrations),
+      },
       null,
       2,
     ),
@@ -154,6 +197,9 @@ export async function runBuild(config: ResolvedDemoConfig): Promise<BuildResult>
     sectionTimings,
     chapters,
     inspect,
+    captionsBurnedIn,
+    playUrl,
+    viewingInstructions,
   };
 }
 

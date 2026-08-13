@@ -168,7 +168,7 @@ server.tool(
 
 server.tool(
   "build_demo_video",
-  "Run the full pipeline: TTS, VTT, capture, encode, mux, and verify.",
+  "Run the full pipeline: TTS, VTT, capture, encode, mux, burn-in captions, and verify. Returns viewingInstructions for embedding the MP4 in the agent window and linking it for audio.",
   {
     projectRoot: z.string(),
     configPath: z.string().optional(),
@@ -214,7 +214,7 @@ server.tool(
 
 server.tool(
   "generate_player_snippet",
-  "Produce HTML or React Watch Demo snippets with native video controls, WebVTT captions, and chapter seek buttons. Closing the dialog pauses and resets the video.",
+  "Produce optional HTML or React Watch Demo snippets. Prefer the burned-in MP4 embed/link from build_demo_video unless the user asks for an in-app player.",
   {
     format: z.enum(["html", "react"]).optional(),
     videoSrc: z.string().optional(),

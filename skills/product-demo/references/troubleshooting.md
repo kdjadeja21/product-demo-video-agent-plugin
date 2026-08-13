@@ -34,7 +34,11 @@ Prefer `capture: "still"` for static screens. Encoding uses CRF 18 and scale+pad
 
 ## Captions out of sync
 
-Rebuild after changing section text. Cue timing is weighted by sentence length within each section’s audio duration.
+Rebuild after changing section text. Cue timing is weighted by sentence length within each section’s audio duration. Burn-in uses that same VTT, so a rebuild updates both the sidecar file and the picture.
+
+## Captions missing in the agent window
+
+The final MP4 should have captions burned in (`captionsBurnedIn: true` on the build result). If that flag is false, ffmpeg was built without the `subtitles` filter (libass) — install a full ffmpeg build. Agent-window previews are often **muted**; click the markdown link to the MP4 (or `playUrl`) to hear audio. Burned-in captions still show in the muted preview.
 
 ## Focus highlight missing
 
@@ -46,7 +50,7 @@ Interactive encode uses ffmpeg `tpad` (freeze last frame) plus `-t` so the segme
 
 ## Drafts or plugin copies showing up in git
 
-Run `product-demo gitignore --project <dir>` (or `ensure_demo_gitignore`). Init also applies the managed block. Commit only `demo.config.json` + final mp4 + vtt.
+Run `product-demo gitignore --project <dir>` (or `ensure_demo_gitignore`). Init also applies the managed block. Commit `demo.config.json` + final mp4 + vtt + chapters JSON.
 
 ## Title card fonts missing
 

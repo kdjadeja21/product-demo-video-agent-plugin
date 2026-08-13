@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | `baseUrl` | yes | Origin of the running app (prefer `http://localhost:3000`) |
 | `output.video` | yes | Relative path for final MP4 |
-| `output.captions` | yes | Relative path for WebVTT |
+| `output.captions` | yes | Relative path for sidecar WebVTT (also burned into the MP4) |
 | `output.chapters` | no | Relative path for chapter timestamp JSON (defaults beside captions as `*.chapters.json`) |
 | `output.draftDir` | yes | Working directory for probes, audio, segments |
 | `video` | no | Defaults to 1920×1080, 30fps, `fit: "pad"`, background `#1E1033` |

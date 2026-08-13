@@ -36,6 +36,7 @@ describe("formatDoctorReport", () => {
         ffmpeg: true,
         ffprobe: true,
         edgeTts: false,
+        ffmpegSubtitlesFilter: false,
         ok: false,
         missing: ["edge-tts"],
       },
@@ -63,6 +64,7 @@ describe("formatDoctorReport", () => {
         ffmpeg: true,
         ffprobe: true,
         edgeTts: true,
+        ffmpegSubtitlesFilter: true,
         ok: true,
         missing: [],
       },
@@ -70,6 +72,6 @@ describe("formatDoctorReport", () => {
     });
     expect(text).toContain("All checks passed.");
     expect(text).toContain("Consumer hygiene:");
-    expect(text).toContain("Commit only demo.config.json + final MP4 + final VTT.");
+    expect(text).toContain("Commit demo.config.json + final MP4 + final VTT + chapters JSON. Watch Demo landing CTA is optional.");
   });
 });

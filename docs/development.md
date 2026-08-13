@@ -30,6 +30,6 @@ Integration probe tests skip when ffmpeg/ffprobe are unavailable.
 
 ## Consumer rules
 
-Hygiene for apps that *use* the plugin (do not vendor it, do not change UI for capture, commit config + final media + Watch Demo CTA) lives in [`skills/product-demo/SKILL.md`](../skills/product-demo/SKILL.md). Keep that in sync with the commit list in [`README.md`](../README.md).
+Hygiene for apps that *use* the plugin (do not vendor it, do not change UI for capture, commit config + final media; Watch Demo CTA is optional) lives in [`skills/product-demo/SKILL.md`](../skills/product-demo/SKILL.md). Keep that in sync with the commit list in [`README.md`](../README.md).
 
 User-facing docs: [`README.md`](../README.md). Install and CLI: [`local-setup.md`](local-setup.md).

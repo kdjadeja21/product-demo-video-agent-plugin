@@ -168,6 +168,67 @@ export async function muxVideoAudio(options: {
   ]);
 }
 
+/** Readable burned-in captions for agent-window / file-link playback (ASS force_style). */
+export const DEFAULT_BURNED_CAPTION_STYLE =
+  "FontSize=28,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,BackColour=&H80000000,BorderStyle=4,Outline=2,Shadow=0,Alignment=2,MarginV=48";
+
+/** Escape a file path for ffmpeg's `subtitles=` filter argument. */
+export function escapeSubtitlesFilterPath(filePath: string): string {
+  return filePath
+    .replace(/\\/g, "/")
+    .replace(/'/g, "\\'")
+    .replace(/:/g, "\\:")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]");
+}
+
+export function buildBurnSubtitlesFilter(
+  captionsPath: string,
+  style: string = DEFAULT_BURNED_CAPTION_STYLE,
+): string {
+  const escapedPath = escapeSubtitlesFilterPath(captionsPath);
+  return `subtitles='${escapedPath}':force_style='${style}'`;
+}
+
+/** ffmpeg argv to burn WebVTT onto a muxed MP4 while copying the audio track. */
+export function buildBurnSubtitlesArgs(options: {
+  videoPath: string;
+  captionsPath: string;
+  outputPath: string;
+  style?: string;
+}): string[] {
+  return [
+    "-y",
+    "-i",
+    options.videoPath,
+    "-vf",
+    buildBurnSubtitlesFilter(options.captionsPath, options.style),
+    "-c:v",
+    "libx264",
+    "-pix_fmt",
+    "yuv420p",
+    "-crf",
+    "18",
+    "-preset",
+    "medium",
+    "-c:a",
+    "copy",
+    "-movflags",
+    "+faststart",
+    options.outputPath,
+  ];
+}
+
+export async function burnSubtitlesIntoVideo(options: {
+  videoPath: string;
+  captionsPath: string;
+  outputPath: string;
+  style?: string;
+}): Promise<void> {
+  await mkdir(dirname(options.outputPath), { recursive: true });
+  await runCommandOk("ffmpeg", buildBurnSubtitlesArgs(options));
+}
+
 export async function renderTitleCardPng(options: {
   outputPath: string;
   title: string;

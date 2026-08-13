@@ -55,13 +55,13 @@ npx product-demo build --project /path/to/your-app
 npx product-demo inspect --project /path/to/your-app
 ```
 
-6. Generate the Watch Demo player and add it to the landing page:
+6. The built MP4 is the player. Embed it in the agent walkthrough and link the file (or `playUrl` if the app serves `public/` / `static/`). Opening that link plays **audio + burned-in captions**. Do not add a landing-page Watch Demo unless you want one:
 
 ```bash
 npx product-demo snippet --format react --project /path/to/your-app
 ```
 
-The snippet includes a **Watch Demo** button/dialog, native `<video controls>` (including mute), and chapter seek buttons. Closing the dialog pauses and resets the video.
+The optional snippet includes a **Watch Demo** button/dialog, native `<video controls>`, and chapter seek buttons. Captions are already burned into the MP4, so the snippet does not enable the caption track by default.
 
 ## MCP tools
 
@@ -75,9 +75,9 @@ Typical agent order: `init_demo_config` → `validate_demo_config` → `probe_de
 | `validate_demo_config` | Schema, paths, deps, base URL |
 | `save_browser_session_instructions` | Playwright `storageState` guidance (no auth bypass) |
 | `probe_demo` | Capture-only review frames |
-| `build_demo_video` | Full pipeline |
+| `build_demo_video` | Full pipeline (burns captions into the MP4; returns `viewingInstructions`) |
 | `inspect_demo_output` | ffprobe + sample frames |
-| `generate_player_snippet` | HTML/React Watch Demo + native video controls + WebVTT + chapter buttons |
+| `generate_player_snippet` | Optional HTML/React Watch Demo + native video controls + WebVTT + chapter buttons |
 
 ## Config sketch
 
@@ -109,7 +109,7 @@ Full schema: [`skills/product-demo/references/config-reference.md`](../skills/pr
 - Still PNG holds for static beats; short video only when interacting
 - Focus = rounded border + light dim (no zoom/crop); prefer existing selectors
 - Encode = scale + pad to 1920×1080; interactive clips use temporal `tpad`
-- Captions = external WebVTT (not burned-in)
-- Chapters = seek buttons under the native Watch Demo player
-- Default landing CTA = Watch Demo button after build
+- Captions = burned into the MP4 for agent-window / file-link viewing; sidecar WebVTT still written
+- Chapters = JSON beside captions (used only if you add an in-app player)
+- Default share path = embed the MP4 in the walkthrough + markdown link to the same file (no landing CTA)
 - Playwright `reducedMotion: "reduce"` during capture

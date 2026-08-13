@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildBurnSubtitlesArgs,
   buildScalePadFilter,
   buildStillSegmentArgs,
   buildVideoSegmentArgs,
+  escapeSubtitlesFilterPath,
 } from "../src/pipeline/encode.js";
 
 describe("ffmpeg argv builders", () => {
@@ -54,5 +56,26 @@ describe("ffmpeg argv builders", () => {
     });
     const vf = args[args.indexOf("-vf") + 1];
     expect(vf).not.toContain("tpad=");
+  });
+
+  it("burn-in args copy audio and point subtitles at the VTT", () => {
+    const args = buildBurnSubtitlesArgs({
+      videoPath: "/tmp/in.mp4",
+      captionsPath: "/tmp/in.vtt",
+      outputPath: "/tmp/out.mp4",
+    });
+    expect(args[0]).toBe("-y");
+    const vf = args[args.indexOf("-vf") + 1];
+    expect(vf).toContain("subtitles=");
+    expect(vf).toContain("/tmp/in.vtt");
+    expect(vf).toContain("force_style=");
+    expect(args).toContain("copy");
+    expect(args).toContain("+faststart");
+    expect(args.at(-1)).toBe("/tmp/out.mp4");
+  });
+
+  it("escapes ffmpeg subtitles filter path special characters", () => {
+    expect(escapeSubtitlesFilterPath("C:\\demo\\a.vtt")).toBe("C\\:/demo/a.vtt");
+    expect(escapeSubtitlesFilterPath("/tmp/it's.vtt")).toBe("/tmp/it\\'s.vtt");
   });
 });
