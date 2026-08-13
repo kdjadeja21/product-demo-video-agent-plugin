@@ -55,7 +55,7 @@ npx product-demo build --project /path/to/your-app
 npx product-demo inspect --project /path/to/your-app
 ```
 
-6. Generate the Watch Demo player and add it to the landing page:
+6. By default, link the final video (`output.video`) directly in the PR description and in the agent's chat response — no app changes needed. Only if you explicitly want an embedded player on the landing page, generate the Watch Demo snippet and add it to the app:
 
 ```bash
 npx product-demo snippet --format react --project /path/to/your-app
@@ -110,6 +110,6 @@ Full schema: [`skills/product-demo/references/config-reference.md`](../skills/pr
 - Focus = rounded border + light dim (no zoom/crop); prefer existing selectors
 - Encode = scale + pad to 1920×1080; interactive clips use temporal `tpad`
 - Captions = external WebVTT (not burned-in)
-- Chapters = seek buttons under the native Watch Demo player
-- Default landing CTA = Watch Demo button after build
+- Chapters = seek buttons under the native video player
+- Default CTA = final video linked in the PR description and in the chat response; landing-page Watch Demo button is opt-in
 - Playwright `reducedMotion: "reduce"` during capture

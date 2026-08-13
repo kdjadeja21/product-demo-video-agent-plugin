@@ -1,6 +1,6 @@
 # product-demo
 
-Turns a project’s `demo.config.json` into a narrated 1080p product demo: browser capture, voiceover, captions, focus highlights, and a **Watch Demo** button on your landing page.
+Turns a project’s `demo.config.json` into a narrated 1080p product demo: browser capture, voiceover, captions, and focus highlights. The final video is linked directly in the PR and in the agent's response by default; an optional **Watch Demo** button for your landing page is available on request.
 
 Works with any web UI you can open in a browser. Nothing in this plugin is tied to a specific product.
 
@@ -17,13 +17,14 @@ The agent installs the plugin, writes the config, captures the walkthrough, and 
 - Narrated MP4 (1080p)
 - WebVTT captions
 - Chapter seek buttons under the native video player
-- A **Watch Demo** button on `/`
+- A clickable link to the final video in the PR description and in the agent's chat response
+- (Optional, on request) a **Watch Demo** button on `/`
 
 ## After a successful build, commit
 
 - `demo.config.json`
 - The final MP4, captions, and chapters files
-- The Watch Demo button/player on the landing page
+- (Only if explicitly requested) the Watch Demo button/player on the landing page
 
 Do **not** copy this plugin into your app repo. Do **not** change your UI or CSS just for capture. Prefer `http://localhost:…` for `baseUrl`.
 
