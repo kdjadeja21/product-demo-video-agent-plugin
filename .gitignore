@@ -10,4 +10,5 @@ coverage/
 storageState.json
 **/draft/
 *.mp4
+!docs/assets/**/*.mp4
 !tests/fixtures/**/*

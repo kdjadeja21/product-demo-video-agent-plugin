@@ -4,6 +4,14 @@ Turns a project’s `demo.config.json` into a narrated 1080p product demo: brows
 
 Works with any web UI you can open in a browser. Nothing in this plugin is tied to a specific product.
 
+## Demo
+
+Example narrated walkthrough produced by this plugin:
+
+![Product demo](docs/assets/product-demo.mp4)
+
+[Download the demo video](docs/assets/product-demo.mp4) (1080p MP4)
+
 ## Create a demo
 
 Paste this in Cursor Cloud Agent in the project you want to demo. Replace `[...]` with the screens to cover:
