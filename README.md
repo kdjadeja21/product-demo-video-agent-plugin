@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="product-demo logo" width="168" height="168">
+</p>
+
 # product-demo
 
 Turns a project’s `demo.config.json` into a narrated 1080p product demo: browser capture, voiceover, captions, and focus highlights. The final video is linked directly in the PR and in the agent's response by default; an optional **Watch Demo** button for your landing page is available on request.
